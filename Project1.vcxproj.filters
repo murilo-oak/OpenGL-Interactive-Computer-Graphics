@@ -36,5 +36,6 @@
   <ItemGroup>
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\vertex.vert" />
+    <None Include="Shaders\Blinn_shading.frag" />
   </ItemGroup>
 </Project>
