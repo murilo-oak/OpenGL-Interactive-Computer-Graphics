@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #define GLEW_STATIC
 #include "glew.h"
 #include <GL/freeglut.h>
@@ -37,6 +38,11 @@ struct normal {
 	float x, y, z;
 };
 
+struct vertexIndices{
+	int vertex;
+	int normal;
+
+};
 std::vector<vertex> vertices{
 		{-1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 0.0f }, // Vertex 1
 		{ 0.0f,  1.0f, 1.0f,  0.0f, 1.0f, 0.0f }, // Vertex 2
@@ -98,6 +104,8 @@ void myKeyboard(unsigned char key, int x, int y) {
 			shaderProgram = program.GetID();
 
 			glCreateVertexArrays(1, &vao);
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
 
 			glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(vertex));
 			glVertexArrayAttribBinding(vao, 0, 0);
@@ -146,6 +154,7 @@ void onLeftButton(int x, int y) {
 
 
 	mvp = projection * model * rotX * rotY * transform * view;
+	//mv = model * rotX * rotY * transform * view;
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -196,9 +205,12 @@ void myDisplayTeapot(){
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
+	//glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, (void*)(facesIndex.size() * sizeof(unsigned int)));
 	
 	// Unbind the element array buffer
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -211,13 +223,14 @@ int main(int argc, char** argv) {
 
 	glutInit(&argc, argv);
 	glutInitContextVersion(4, 5);
-
+	glutInitContextFlags(GLUT_DEBUG);
 	glutInitWindowSize(windowWidth, windowHeight);
 	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-
 	glutCreateWindow("Windows");
+	//CY_GL_REGISTER_DEBUG_CALLBACK;
+
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
 	glutMotionFunc(motion);
@@ -233,6 +246,7 @@ int main(int argc, char** argv) {
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
+	//std::cout << mesh.NF() << "\n";
 
 	//vector of vertices
 	int n = mesh.NV();
@@ -241,7 +255,85 @@ int main(int argc, char** argv) {
 		//std::cout << teapot[i].x <<" "<< teapot[i].y << " " << teapot[i].z << " " << teapot[i].r << " " << teapot[i].g << " " << teapot[i].b << "\n";
 	}
 
+	//std::cout << mesh.F(0).v[0] << "\n";
+	//std::cout << mesh.VT(mesh.F(0).v[0]).x << "\n";
+	//std::cout << mesh.VN(mesh.F(0).v[0]).x << "\n";
+
+	//std::cout << mesh.F(0).v[1] << "\n";
+	//std::cout << mesh.VT(mesh.F(0).v[1]).x << "\n";
+	//std::cout << mesh.VN(mesh.F(0).v[1]).x << "\n";
+
+
 	int nf = mesh.NF();
+	int counter{};
+	std::vector<vertexIndices> list{};
+	std::vector<bool> checkVertex(n, false);
+	
+	for (int i = 0; i < nf-1; i++) {
+		for (int k = 0; k < 3; k++) {
+			
+			if (mesh.F(i).v[k]>= n || checkVertex[mesh.F(i).v[k]]) {
+				continue;
+			}
+
+			for (int j = i; j < nf; j++) {
+				if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FN(i).v[k] != mesh.FN(j).v[k]) { //works!
+					
+					if (list.empty()) {
+						int vertexI = mesh.F(i).v[k];
+						int normalI = mesh.FN(i).v[k];
+						vertexIndices vertex = { vertexI, normalI };
+						list.push_back(vertex);
+					}
+					
+					int vertexI = mesh.F(j).v[k];
+					int normalI = mesh.FN(j).v[k];
+					
+					vertexIndices vertex = { vertexI, normalI };
+					auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) { 
+						return e.vertex == vertex.vertex && e.normal == vertex.normal; 
+					});
+					
+					bool notFoundVertex = it == list.end();
+					
+					if (notFoundVertex) {
+						list.push_back(vertex);
+					}
+				}
+			}
+			
+		}
+		//se achou vértice com normal distinta
+		if (!list.empty()) {
+			
+			//atualiza o valor no vetor de vértice que ele ja foi checado
+			checkVertex[list[0].vertex] = true;
+			
+			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
+			
+			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf](vertexIndices x) {
+				
+				int tSize = teapot.size();
+				//adiciona vertice
+				teapot.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+				
+				//atualiza o indices dos vértices duplicados
+				for (int f = 0; f < nf; f++) {
+					for (int k = 0; k < 3; k++) {
+						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k]) {
+							mesh.F(f).v[k] = tSize;
+						}
+					}
+				}
+			});
+
+			list.clear();
+		}
+		
+	}
+
+	std::cout << teapot.size() << "  <-\n";
+	std::cout << mesh.NVN() << "  <-\n";
 
 	for (int i = 0; i < nf; i++) {
 		facesIndex.push_back({ mesh.F(i).v[0] });
@@ -250,10 +342,23 @@ int main(int argc, char** argv) {
 	}
 
 	int nNormals = mesh.NVN();
-	for (int i = 0; i < nNormals; i++) {
-		normals.push_back({ mesh.VN(i).x, mesh.VN(i).y, mesh.VN(i).z });
-		//std::cout << normals[i].x << " " << normals[i].y << " " << normals[i].z << "\n";
+	int normalIndex{};
+
+	normal zero = { 0.5f,0.5f,0.5f };
+	for (int f = 0; f < nf; f++) {
+		for (int k = 0; k < 3; k++) {
+			if (mesh.F(f).v[k] == normalIndex) {
+				normalIndex++;
+				normal nwqe = { mesh.FN(f).v[0], mesh.FN(f).v[1], mesh.FN(f).v[2] };
+				normal zero = { 1.0f,1.0f,1.0f };
+				normals.push_back(zero);
+			}
+		}
 	}
+	normals.push_back(zero);
+
+	std::cout << normals.size() << "\n";
+	std::cout << teapot.size() << "\n";
 
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -269,20 +374,46 @@ int main(int argc, char** argv) {
 
 	model = glm::mat4(1.0f);
 	mvp = projection * model * view;
-	mv = glm::identity<glm::mat3>();
+	mv = (model * view);
+
+	mv = glm::inverse(mv);
+	mv = glm::transpose(mv);
+	
 
 	transform = glm::translate(glm::mat4(1.0f), translation);
 
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
 	glCreateBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glNamedBufferStorage(vbo, teapot.size() * sizeof(vertex), teapot.data(), 0);
 
 	glCreateBuffers(1, &vboNormals);
+	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
 	glNamedBufferStorage(vboNormals, normals.size() * sizeof(normal), normals.data(), 0);
+
 
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
 
+	glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(vertex));
+
+	glVertexArrayAttribBinding(vao, 0, 0);
+	glVertexArrayAttribBinding(vao, 1, 0);
+
+
+	glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, x));
+	glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, r));
+
+	glVertexArrayBindingDivisor(vao, 0, 0);
+
+	glEnableVertexArrayAttrib(vao, 0);
+	glEnableVertexArrayAttrib(vao, 1);
+	glEnableVertexArrayAttrib(vao, 2);
+
+	
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
@@ -296,28 +427,15 @@ int main(int argc, char** argv) {
 	program.Link();
 
 	shaderProgram = program.GetID();
-	
-	glCreateVertexArrays(1, &vao);
-
-	glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(vertex));
-	glVertexArrayVertexBuffer(vao, 2, vboNormals, 0, sizeof(normal));
-
-	glVertexArrayAttribBinding(vao, 0, 0);
-	glVertexArrayAttribBinding(vao, 1, 0);
-	glVertexArrayAttribBinding(vao, 2, 0);
-
-	
-	glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, x));
-	glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, r));
-	glVertexArrayAttribFormat(vao, 2, 3, GL_FLOAT, GL_FALSE, offsetof(normal, x));
-	
-	glVertexArrayBindingDivisor(vao, 0, 0);
-	
-	glEnableVertexArrayAttrib(vao, 0);
-	glEnableVertexArrayAttrib(vao, 1);
-	glEnableVertexArrayAttrib(vao, 2);
 
 	glUseProgram(shaderProgram);
+	
+	GLuint nor = glGetAttribLocation(shaderProgram, "inormal");
+	std::cout << "ATRI: " << nor << "\n";
+
+	glEnableVertexArrayAttrib(vboNormals, nor);
+	glVertexAttribPointer(nor, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
