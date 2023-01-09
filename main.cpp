@@ -73,62 +73,13 @@ void myIdle() {
 	glutPostRedisplay();
 }
 
-void myDisplay() {
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glutSwapBuffers();
-	
-	//myIdle();
-}
-
 void myKeyboard(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27:
 			glutLeaveMainLoop();
 			break;
 		case 'a':
-			cy::GLSLShader vertexS;
-			vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
-			cy::GLSLShader fragmentS;
-			fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
-
-			program.CreateProgram();
-
-
-			program.AttachShader(fragmentS);
-			program.AttachShader(vertexS);
-			program.Link();
-
-
-			shaderProgram = program.GetID();
-
-			glCreateVertexArrays(1, &vao);
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
-
-			glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(vertex));
-			glVertexArrayAttribBinding(vao, 0, 0);
-			glVertexArrayAttribBinding(vao, 1, 0);
-
-			glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, x));
-			glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, r));
-
-			glVertexArrayBindingDivisor(vao, 0, 0);
-
-			glEnableVertexArrayAttrib(vao, 0);
-			glEnableVertexArrayAttrib(vao, 1);
-
-			glUseProgram(shaderProgram);
-
-			GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
-			glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-			GLint uniformMvLoc = glGetUniformLocation(program.GetID(), "mv");
-			glUniformMatrix3fv(uniformMvLoc, 1, GL_FALSE, glm::value_ptr(mv));
-
-			GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "tranform");
-			glUniformMatrix4fv(uniformTransLoc, 1, GL_FALSE, glm::value_ptr(transformCamera));
 			break;
 		
 	}
@@ -154,7 +105,7 @@ void onLeftButton(int x, int y) {
 
 
 	mvp = projection * model * rotX * rotY * transform * view;
-	//mv = model * rotX * rotY * transform * view;
+	mv = model * rotX * rotY * transform * view;
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -173,6 +124,7 @@ void onRightButton(int x, int y) {
 	);
 
 	mvp = projection * model * rotX * rotY * transform * view;
+	mv = model * rotX * rotY * transform * view;
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -197,26 +149,31 @@ void motion(int x, int y) {
 }
 
 void myDisplayTeapot(){
-
+	glDepthRange(0.0, 1);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	//glFrontFace(GL_CW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glEnable(GL_BLEND);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_FRAMEBUFFER_SRGB);
+	glClearDepth(0.5);
+	glEnable(GL_DEPTH_TEST);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glViewport(0, 0, windowWidth, windowHeight);
 	
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
-
-	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
-	//glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, (void*)(facesIndex.size() * sizeof(unsigned int)));
-	
-	// Unbind the element array buffer
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
 	//glDrawArrays(GL_POINTS, 0, (GLsizei)teapot.size());
-	//glClear(GL_DEPTH_BUFFER_BIT);
+	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
 	glutSwapBuffers();
+}
+
+void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+	// Imprima a mensagem de depuração
+	std::cout << "Debug message: " << message << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -229,13 +186,10 @@ int main(int argc, char** argv) {
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
 	glutCreateWindow("Windows");
-	//CY_GL_REGISTER_DEBUG_CALLBACK;
 
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
 	glutMotionFunc(motion);
-
-	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
 	GLenum res = glewInit();
 	if (res != GLEW_OK)
@@ -243,6 +197,8 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
 		return 1;
 	}
+
+	CY_GL_REGISTER_DEBUG_CALLBACK;
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
@@ -254,15 +210,6 @@ int main(int argc, char** argv) {
 		teapot.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 0.5f, 0.5f , 0.5f});
 		//std::cout << teapot[i].x <<" "<< teapot[i].y << " " << teapot[i].z << " " << teapot[i].r << " " << teapot[i].g << " " << teapot[i].b << "\n";
 	}
-
-	//std::cout << mesh.F(0).v[0] << "\n";
-	//std::cout << mesh.VT(mesh.F(0).v[0]).x << "\n";
-	//std::cout << mesh.VN(mesh.F(0).v[0]).x << "\n";
-
-	//std::cout << mesh.F(0).v[1] << "\n";
-	//std::cout << mesh.VT(mesh.F(0).v[1]).x << "\n";
-	//std::cout << mesh.VN(mesh.F(0).v[1]).x << "\n";
-
 
 	int nf = mesh.NF();
 	int counter{};
@@ -349,13 +296,12 @@ int main(int argc, char** argv) {
 		for (int k = 0; k < 3; k++) {
 			if (mesh.F(f).v[k] == normalIndex) {
 				normalIndex++;
-				normal nwqe = { mesh.FN(f).v[0], mesh.FN(f).v[1], mesh.FN(f).v[2] };
-				normal zero = { 1.0f,1.0f,1.0f };
-				normals.push_back(zero);
+				normal nwqe = { mesh.VN( mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).y, mesh.VN(mesh.FN(f).v[k]).z };
+				normal zero = { 1.0f,0.0f,0.0f};
+				normals.push_back(nwqe);
 			}
 		}
 	}
-	normals.push_back(zero);
 
 	std::cout << normals.size() << "\n";
 	std::cout << teapot.size() << "\n";
@@ -363,8 +309,8 @@ int main(int argc, char** argv) {
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -0.5f, 100.0f);
-	projection = glm::perspective(45.0f, 1.0f, 0.0f, 100.0f);
+	projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 10.0f);
+	//projection = glm::perspective(45.0f, 1.0f, 0.0f, 100.0f);
 
 	view = glm::lookAt(
 		glm::vec3(-1.0f, 0.0f, 0.5f),
@@ -374,46 +320,40 @@ int main(int argc, char** argv) {
 
 	model = glm::mat4(1.0f);
 	mvp = projection * model * view;
-	mv = (model * view);
 
+	mv = (model * view);
 	mv = glm::inverse(mv);
 	mv = glm::transpose(mv);
 	
-
 	transform = glm::translate(glm::mat4(1.0f), translation);
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-
+	
+	//positions
 	glCreateBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glNamedBufferStorage(vbo, teapot.size() * sizeof(vertex), teapot.data(), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, x));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, r));
+	
+	glEnableVertexAttribArray(0);//antes de renderizar
+	glEnableVertexAttribArray(1);//antes de renderizar
 
+	//normals
 	glCreateBuffers(1, &vboNormals);
 	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
 	glNamedBufferStorage(vboNormals, normals.size() * sizeof(normal), normals.data(), 0);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
+	
+	glEnableVertexAttribArray(2);//antes de renderizar
 
-
+	//indices
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
 
-	glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(vertex));
-
-	glVertexArrayAttribBinding(vao, 0, 0);
-	glVertexArrayAttribBinding(vao, 1, 0);
-
-
-	glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, x));
-	glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, r));
-
-	glVertexArrayBindingDivisor(vao, 0, 0);
-
-	glEnableVertexArrayAttrib(vao, 0);
-	glEnableVertexArrayAttrib(vao, 1);
-	glEnableVertexArrayAttrib(vao, 2);
-
-	
+	//vertex and fragment shader compilation
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
@@ -429,20 +369,13 @@ int main(int argc, char** argv) {
 	shaderProgram = program.GetID();
 
 	glUseProgram(shaderProgram);
-	
-	GLuint nor = glGetAttribLocation(shaderProgram, "inormal");
-	std::cout << "ATRI: " << nor << "\n";
 
-	glEnableVertexArrayAttrib(vboNormals, nor);
-	glVertexAttribPointer(nor, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-
+	//Uniform variable initialization
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
 	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv");
 	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
-
 
 	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "tranform");
 	glUniformMatrix4fv(uniformTransLoc, 1, GL_FALSE, glm::value_ptr(transformCamera));

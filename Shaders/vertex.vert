@@ -14,6 +14,6 @@ uniform mat3 mv;
 void main() {
 	color = vec4(icolor,1);
 	pos = vec4(iposition, 1);
-	normal = inormal;
+	normal = mv * inormal;
 	gl_Position =  mvp * vec4(iposition * 0.05, 1);
 }
