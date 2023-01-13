@@ -61,8 +61,10 @@ glm::mat4 mvp;
 glm::mat4 transform;
 
 glm::mat3 mv;
+glm::mat4 mv4;
 
 glm::vec3 translation(0.0f, 0.0f, 0.0f);
+glm::vec3 lightDir(1.0f, 1.0f, 0.0f);
 
 std::vector<vertex> teapot{};
 std::vector<normal> normals{};
@@ -105,10 +107,21 @@ void onLeftButton(int x, int y) {
 
 
 	mvp = projection * model * rotX * rotY * transform * view;
-	mv = model * rotX * rotY * transform * view;
+	mv4 = model * rotX * rotY * transform * view;
+
+	mv = mv4;
+	mv = glm::inverse(mv);
+	mv = glm::transpose(mv);
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+
+	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
 	glutPostRedisplay();
 
 	updateMouse(x, y);
@@ -124,10 +137,22 @@ void onRightButton(int x, int y) {
 	);
 
 	mvp = projection * model * rotX * rotY * transform * view;
-	mv = model * rotX * rotY * transform * view;
+	mv4 = model * rotX * rotY * transform * view;
+
+	mv = mv4;
+	mv = glm::inverse(mv);
+	mv = glm::transpose(mv);
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+	
+	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+
 	glutPostRedisplay();
 
 	updateMouse(x, y);
@@ -151,22 +176,13 @@ void motion(int x, int y) {
 void myDisplayTeapot(){
 	glDepthRange(0.0, 1);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glFrontFace(GL_CW);
-	//glCullFace(GL_BACK);
-	//glEnable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_FRAMEBUFFER_SRGB);
 	glClearDepth(0.5);
 	glEnable(GL_DEPTH_TEST);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, windowWidth, windowHeight);
-	
-	//glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
-	//glDrawArrays(GL_POINTS, 0, (GLsizei)teapot.size());
+
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
 	glutSwapBuffers();
 }
@@ -202,13 +218,11 @@ int main(int argc, char** argv) {
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
-	//std::cout << mesh.NF() << "\n";
 
 	//vector of vertices
 	int n = mesh.NV();
 	for (int i = 0; i < n; i++) {
-		teapot.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 0.5f, 0.5f , 0.5f});
-		//std::cout << teapot[i].x <<" "<< teapot[i].y << " " << teapot[i].z << " " << teapot[i].r << " " << teapot[i].g << " " << teapot[i].b << "\n";
+		teapot.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f});
 	}
 
 	int nf = mesh.NF();
@@ -321,7 +335,8 @@ int main(int argc, char** argv) {
 	model = glm::mat4(1.0f);
 	mvp = projection * model * view;
 
-	mv = (model * view);
+	mv4 = (model * view);
+	mv = mv4;
 	mv = glm::inverse(mv);
 	mv = glm::transpose(mv);
 	
@@ -374,11 +389,18 @@ int main(int argc, char** argv) {
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
-	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv");
+	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
 	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
 
 	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "tranform");
 	glUniformMatrix4fv(uniformTransLoc, 1, GL_FALSE, glm::value_ptr(transformCamera));
+
+	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
+	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+
 
 	if (uniformLoc != -1) {
 		std::cout << "certo";

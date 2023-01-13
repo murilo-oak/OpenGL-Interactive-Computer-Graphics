@@ -7,13 +7,19 @@ layout(location = 2) in vec3 inormal;
 out vec4 color;
 out vec3 normal;
 out vec4 pos;
+out mat4 mv;
+out vec3 lightD;
 
 uniform mat4 mvp;
-uniform mat3 mv;
+uniform mat3 mv3;
+uniform mat4 mv4;
+uniform vec3 lightDir;
 
 void main() {
+	lightD = mv3 * lightDir;
 	color = vec4(icolor,1);
 	pos = vec4(iposition, 1);
-	normal = mv * inormal;
+	mv = mv4;
+	normal = mv3 * inormal;
 	gl_Position =  mvp * vec4(iposition * 0.05, 1);
 }
