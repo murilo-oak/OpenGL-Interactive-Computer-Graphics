@@ -19,5 +19,5 @@ void main() {
 	float specular = dot(normalN, halfVec);
 	float difuse = difuseLight(normalN, lightD);
 	//ocolor = vec4(pow(specular, 90).xxx, 1);
-	ocolor =  0.999 * (difuse * color + pow(specular, 2000)) + 0.1 * color;
+	ocolor =  (difuse * color + ceil(difuse) * pow(specular, 2000));
 }

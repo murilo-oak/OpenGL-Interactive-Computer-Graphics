@@ -9,6 +9,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "lodepng/lodepng.h"
 
 float timeD;
 GLuint vao{};
@@ -64,10 +65,12 @@ glm::mat3 mv;
 glm::mat4 mv4;
 
 glm::vec3 translation(0.0f, 0.0f, 0.0f);
-glm::vec3 lightDir(1.0f, 1.0f, 0.0f);
+glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
 
 std::vector<vertex> teapot{};
 std::vector<normal> normals{};
+std::vector<glm::vec2> texCoords{};
+
 cy::GLSLProgram program;
 
 
@@ -80,10 +83,9 @@ void myKeyboard(unsigned char key, int x, int y) {
 		case 27:
 			glutLeaveMainLoop();
 			break;
-		case 'a':
-
+		case GLUT_ACTIVE_CTRL:
+			std::cout << "aaa\n";
 			break;
-		
 	}
 	glutPostRedisplay();
 }
@@ -100,7 +102,7 @@ void onLeftButton(int x, int y) {
 	rotY = glm::rotate(rotY, angleY, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	view = glm::lookAt(
-		glm::vec3(-1.0f, 0.0f, 0.5f) + translation,
+		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
 		glm::vec3(0.0f, 0.0f, 0.5f),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 	);
@@ -126,12 +128,31 @@ void onLeftButton(int x, int y) {
 
 	updateMouse(x, y);
 }
+
+void onLeftButton2(int x, int y) {
+	angleY = (x - preMouseX) / 40.0f;
+	angleX = (y - preMouseY) / 40.0f;
+
+	glm::vec3 vector = glm::vec3(lightDir);
+	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::vec4 rotatedVector = rotationMatrixX * rotationMatrixY * glm::vec4(vector, 1.0f);
+
+	lightDir = rotatedVector;
+
+	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
+	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+
+	glutPostRedisplay();
+
+	updateMouse(x, y);
+}
 void onRightButton(int x, int y) {
 	translation.y += (y - preMouseY) / 400.0f;
 
 
 	view = glm::lookAt(
-		glm::vec3(-1.0f, 0.0f, 0.5f) + translation,
+		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
 		glm::vec3(0.0f, 0.0f, 0.5f),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 	);
@@ -157,20 +178,30 @@ void onRightButton(int x, int y) {
 
 	updateMouse(x, y);
 }
+
+bool controlIsPressed = false;
+
 void myMouse(int button, int state, int x, int y) {
 	if (state == GLUT_DOWN) {
-		if (button == GLUT_RIGHT_BUTTON) {
-			updateMouse(x, y);
-			glutMotionFunc(onRightButton);
-		}
-		else if (button == GLUT_LEFT_BUTTON) {
+		if (button == GLUT_LEFT_BUTTON) {
 			updateMouse(x, y);
 			glutMotionFunc(onLeftButton);
 		}
-			
+		else if (button == GLUT_RIGHT_BUTTON && !controlIsPressed) {
+			updateMouse(x, y);
+			glutMotionFunc(onRightButton);
+		}	
 	}
 }
 void motion(int x, int y) {
+}
+
+void  specialFunc(int key, int x, int y) {
+	if (key == GLUT_KEY_CTRL_L) {
+		updateMouse(x, y);
+		glutMotionFunc(onLeftButton2);
+	}
+
 }
 
 void myDisplayTeapot(){
@@ -187,11 +218,6 @@ void myDisplayTeapot(){
 	glutSwapBuffers();
 }
 
-void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	// Imprima a mensagem de depuração
-	std::cout << "Debug message: " << message << std::endl;
-}
-
 int main(int argc, char** argv) {
 
 	glutInit(&argc, argv);
@@ -206,6 +232,7 @@ int main(int argc, char** argv) {
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
 	glutMotionFunc(motion);
+	glutSpecialFunc (specialFunc);
 
 	GLenum res = glewInit();
 	if (res != GLEW_OK)
@@ -218,6 +245,18 @@ int main(int argc, char** argv) {
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
+	//std::cout << mesh.GetTexCoord(0, cy::Vec3f(0,1,0)).elem[0] <<" | " << mesh.GetTexCoord(0, cy::Vec3f(0, 1, 0)).elem[1] << " <- M \n";
+	
+	std::vector<unsigned char> png;
+	std::vector<unsigned char> image; //the raw pixels
+	unsigned width, height;
+	lodepng::State state; //optionally customize this one
+
+	unsigned error = lodepng::load_file(png, "brick.png"); //load the image file with given filename
+	if (!error) error = lodepng::decode(image, width, height, state, png);
+
+	//if there's an error, display it
+	if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 
 	//vector of vertices
 	int n = mesh.NV();
@@ -278,7 +317,7 @@ int main(int argc, char** argv) {
 				//adiciona vertice
 				teapot.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
 				
-				//atualiza o indices dos vértices duplicados
+				//atualiza os indices dos vértices duplicados
 				for (int f = 0; f < nf; f++) {
 					for (int k = 0; k < 3; k++) {
 						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k]) {
@@ -311,29 +350,28 @@ int main(int argc, char** argv) {
 			if (mesh.F(f).v[k] == normalIndex) {
 				normalIndex++;
 				normal nwqe = { mesh.VN( mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).y, mesh.VN(mesh.FN(f).v[k]).z };
+				//glm::vec2 texCoord = { mesh.VN(mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).x};
 				normal zero = { 1.0f,0.0f,0.0f};
 				normals.push_back(nwqe);
 			}
 		}
 	}
 
-	std::cout << normals.size() << "\n";
-	std::cout << teapot.size() << "\n";
-
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 10.0f);
-	//projection = glm::perspective(45.0f, 1.0f, 0.0f, 100.0f);
+	projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -5.0f, 100.0f);
+	//projection = glm::perspective(45.0f, (GLfloat)windowWidth / (GLfloat)windowHeight, 1.0f, 1500.0f);
 
 	view = glm::lookAt(
-		glm::vec3(-1.0f, 0.0f, 0.5f),
+		glm::vec3(-2.0f, 0.0f, 0.5f),
 		glm::vec3(0.0f, 0.0f, 0.5f),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 	);
 
 	model = glm::mat4(1.0f);
 	mvp = projection * model * view;
+	mvp = projection * model * rotX * rotY * view;
 
 	mv4 = (model * view);
 	mv = mv4;
