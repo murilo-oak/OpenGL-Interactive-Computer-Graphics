@@ -42,7 +42,7 @@ struct normal {
 struct vertexIndices{
 	int vertex;
 	int normal;
-
+	int texCoord;
 };
 std::vector<vertex> vertices{
 		{-1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 0.0f }, // Vertex 1
@@ -70,6 +70,7 @@ glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
 std::vector<vertex> teapot{};
 std::vector<normal> normals{};
 std::vector<glm::vec2> texCoords{};
+std::vector<glm::vec2> texCoords2{};
 
 cy::GLSLProgram program;
 
@@ -275,9 +276,9 @@ int main(int argc, char** argv) {
 			if (mesh.F(i).v[k]>= n || checkVertex[mesh.F(i).v[k]]) {
 				continue;
 			}
-
+	
 			for (int j = i; j < nf; j++) {
-				if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FN(i).v[k] != mesh.FN(j).v[k]) { //works!
+				if (mesh.F(i).v[k] == mesh.F(j).v[k] && (mesh.FN(i).v[k] != mesh.FN(j).v[k])) { //works!
 					
 					if (list.empty()) {
 						int vertexI = mesh.F(i).v[k];
@@ -332,30 +333,122 @@ int main(int argc, char** argv) {
 		
 	}
 
-	std::cout << teapot.size() << "  <-\n";
-	std::cout << mesh.NVN() << "  <-\n";
 
-	for (int i = 0; i < nf; i++) {
-		facesIndex.push_back({ mesh.F(i).v[0] });
-		facesIndex.push_back({ mesh.F(i).v[1] });
-		facesIndex.push_back({ mesh.F(i).v[2] });
+	for (int i = 0; i < mesh.NVT(); i++) {
+		//std::cout << mesh.VT(i).elem[0] << ", "  << mesh.VT(i).elem[1] << ", " << mesh.VT(i).elem[2] << "\n";
 	}
 
 	int nNormals = mesh.NVN();
 	int normalIndex{};
-
 	normal zero = { 0.5f,0.5f,0.5f };
 	for (int f = 0; f < nf; f++) {
 		for (int k = 0; k < 3; k++) {
 			if (mesh.F(f).v[k] == normalIndex) {
 				normalIndex++;
-				normal nwqe = { mesh.VN( mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).y, mesh.VN(mesh.FN(f).v[k]).z };
+				normal nwqe = { mesh.VN(mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).y, mesh.VN(mesh.FN(f).v[k]).z };
 				//glm::vec2 texCoord = { mesh.VN(mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).x};
-				normal zero = { 1.0f,0.0f,0.0f};
+				normal zero = { 1.0f,0.0f,0.0f };
 				normals.push_back(nwqe);
 			}
 		}
 	}
+
+	for (int i = 0; i < nf - 1; i++) {
+		for (int k = 0; k < 3; k++) {
+
+			if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
+				continue;
+			}
+
+			for (int j = i; j < nf; j++) {
+				if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FT(i).v[k] != mesh.FT(j).v[k]) { //works!
+					//std::cout <<"(" << mesh.FT(i).v[k] << ", " << mesh.FT(j).v[k] << ")";
+					if (list.empty()) {
+						int vertexI = mesh.F(i).v[k];
+						int normalI = mesh.FN(i).v[k];
+						int texI = mesh.FT(i).v[k];
+						vertexIndices vertex = { vertexI, normalI, texI };
+						list.push_back(vertex);
+					}
+
+					int vertexI = mesh.F(j).v[k];
+					int normalI = mesh.FN(j).v[k];
+					int texI = mesh.FT(i).v[k];
+					
+					vertexIndices vertex = { vertexI, normalI, texI };
+					auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) {
+						return e.vertex == vertex.vertex && e.normal == vertex.normal && e.texCoord == vertex.texCoord;
+						});
+
+					bool notFoundVertex = it == list.end();
+
+					if (notFoundVertex) {
+						list.push_back(vertex);
+					}
+				}
+			}
+
+		}
+		//se achou vértice com normal distinta
+		if (list.size() > 0) {
+
+			//atualiza o valor no vetor de vértice que ele ja foi checado
+			checkVertex[list[0].vertex] = true;
+
+			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
+			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf](vertexIndices x) {
+				
+				int tSize = teapot.size();
+				//adiciona vertice
+				teapot.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+				normals.push_back({ mesh.VN(x.normal).x ,mesh.VN(x.normal).x ,mesh.VN(x.normal).x});
+
+				for (int f = 0; f < nf; f++) {
+					for (int k = 0; k < 3; k++) {
+						//mesh.VN(mesh.FN(f).v[k]).x
+						if (x.vertex == mesh.F(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
+							mesh.F(f).v[k] = tSize;
+							mesh.FN(f).v[k] = tSize;
+						}
+					}
+				}
+				});
+		}
+
+		list.clear();
+	}
+			
+	int nTex = teapot.size();
+	int texIndex{};
+
+	for (int f = 0; f < mesh.NF(); f++) {
+		for (int k = 0; k < 3; k++) {
+			for (int j = f; j < nf; j++) {
+
+				if (mesh.F(j).v[k] == texIndex) {
+					texIndex++;
+					//std::cout << mesh.VT(mesh.FT(f).v[k]).x << ", " << mesh.VT(mesh.FT(f).v[k]).y << "\n";
+					texCoords.push_back({ mesh.VT(mesh.FT(f).v[k]).x, mesh.VT(mesh.FT(f).v[k]).y });
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < nf; i++) {
+		facesIndex.push_back({ mesh.F(i).v[0] });
+		facesIndex.push_back({ mesh.F(i).v[1] });
+		facesIndex.push_back({ mesh.F(i).v[2] });
+
+		//std::cout << mesh.FN(i).v[0] << ", \n";
+	}
+
+
+	std::cout << teapot.size() << "  <- Vertices\n";
+	std::cout << normals.size() << "  <- Normals\n";
+	std::cout << texCoords.size() << "  <- Tex\n";
+	std::cout << mesh.NF() << "  <- Faces\n";
+	std::cout << mesh.NV() << "  <- Original Vertex number\n";
+	
 
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
