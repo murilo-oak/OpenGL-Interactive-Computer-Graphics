@@ -15,8 +15,10 @@ float timeD;
 GLuint vao{};
 GLuint vbo{};
 GLuint vboNormals{};
+GLuint vboTexCoords{};
 GLuint ebo{};
 GLuint shaderProgram;
+int texID{};
 
 std::vector<cy::Vec3f> geometryMesh;
 std::vector<unsigned int> facesIndex;
@@ -96,12 +98,13 @@ void updateMouse(int x, int y) {
 
 }
 void onLeftButton(int x, int y) {
-	angleY = (x - preMouseX)/40.0f;
+	//angleY = (x - preMouseX)/40.0f;
 	angleX = (y - preMouseY)/40.0f;
 
-	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-	rotY = glm::rotate(rotY, angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+	//rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	//rotY = glm::rotate(rotY, angleY, glm::vec3(0.0f, 1.0f, 0.0f));
 
+	translation += glm::vec3(angleX,0.f,0.f);
 	view = glm::lookAt(
 		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
 		glm::vec3(0.0f, 0.0f, 0.5f),
@@ -134,6 +137,7 @@ void onLeftButton2(int x, int y) {
 	angleY = (x - preMouseX) / 40.0f;
 	angleX = (y - preMouseY) / 40.0f;
 
+	translation = +glm::vec4(angleX, 0, 0, 0);
 	glm::vec3 vector = glm::vec3(lightDir);
 	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -214,8 +218,10 @@ void myDisplayTeapot(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, windowWidth, windowHeight);
-
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texID);
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
+	//glDrawArrays(GL_POINTS, 0, teapot.size());
 	glutSwapBuffers();
 }
 
@@ -228,7 +234,7 @@ int main(int argc, char** argv) {
 	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-	glutCreateWindow("Windows");
+	glutCreateWindow("OpenGL - Maxwell, the Cat");
 
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
@@ -247,13 +253,17 @@ int main(int argc, char** argv) {
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
 	//std::cout << mesh.GetTexCoord(0, cy::Vec3f(0,1,0)).elem[0] <<" | " << mesh.GetTexCoord(0, cy::Vec3f(0, 1, 0)).elem[1] << " <- M \n";
-	
+
 	std::vector<unsigned char> png;
 	std::vector<unsigned char> image; //the raw pixels
 	unsigned width, height;
 	lodepng::State state; //optionally customize this one
 
-	unsigned error = lodepng::load_file(png, "brick.png"); //load the image file with given filename
+	std::cout<< "Materials: " << mesh.NM() << "\n";
+	
+
+	//unsigned error = lodepng::load_file(png, "dingus_nowhiskers.png"); //load the image file with given filename
+	unsigned error = lodepng::load_file(png, "brick.png");
 	if (!error) error = lodepng::decode(image, width, height, state, png);
 
 	//if there's an error, display it
@@ -263,6 +273,7 @@ int main(int argc, char** argv) {
 	int n = mesh.NV();
 	for (int i = 0; i < n; i++) {
 		teapot.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f});
+		//std::cout << mesh.VT(mesh.FT(i).v[0]).x << ", " << mesh.VT(mesh.FT(i).v[0]).y << " \n";
 	}
 
 	int nf = mesh.NF();
@@ -333,25 +344,8 @@ int main(int argc, char** argv) {
 		
 	}
 
-
-	for (int i = 0; i < mesh.NVT(); i++) {
-		//std::cout << mesh.VT(i).elem[0] << ", "  << mesh.VT(i).elem[1] << ", " << mesh.VT(i).elem[2] << "\n";
-	}
-
 	int nNormals = mesh.NVN();
 	int normalIndex{};
-	normal zero = { 0.5f,0.5f,0.5f };
-	for (int f = 0; f < nf; f++) {
-		for (int k = 0; k < 3; k++) {
-			if (mesh.F(f).v[k] == normalIndex) {
-				normalIndex++;
-				normal nwqe = { mesh.VN(mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).y, mesh.VN(mesh.FN(f).v[k]).z };
-				//glm::vec2 texCoord = { mesh.VN(mesh.FN(f).v[k]).x, mesh.VN(mesh.FN(f).v[k]).x};
-				normal zero = { 1.0f,0.0f,0.0f };
-				normals.push_back(nwqe);
-			}
-		}
-	}
 
 	for (int i = 0; i < nf - 1; i++) {
 		for (int k = 0; k < 3; k++) {
@@ -401,12 +395,13 @@ int main(int argc, char** argv) {
 				int tSize = teapot.size();
 				//adiciona vertice
 				teapot.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
-				normals.push_back({ mesh.VN(x.normal).x ,mesh.VN(x.normal).x ,mesh.VN(x.normal).x});
+				//normals.push_back({ mesh.VN(x.normal).x, mesh.VN(x.normal).y, mesh.VN(x.normal).z});
+
 
 				for (int f = 0; f < nf; f++) {
 					for (int k = 0; k < 3; k++) {
 						//mesh.VN(mesh.FN(f).v[k]).x
-						if (x.vertex == mesh.F(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
+						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
 							mesh.F(f).v[k] = tSize;
 							mesh.FN(f).v[k] = tSize;
 						}
@@ -423,12 +418,13 @@ int main(int argc, char** argv) {
 
 	for (int f = 0; f < mesh.NF(); f++) {
 		for (int k = 0; k < 3; k++) {
-			for (int j = f; j < nf; j++) {
-
+			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.FT(f).v[k] << " \n";
+			for (int j = 0; j < nf; j++) {
 				if (mesh.F(j).v[k] == texIndex) {
 					texIndex++;
-					//std::cout << mesh.VT(mesh.FT(f).v[k]).x << ", " << mesh.VT(mesh.FT(f).v[k]).y << "\n";
-					texCoords.push_back({ mesh.VT(mesh.FT(f).v[k]).x, mesh.VT(mesh.FT(f).v[k]).y });
+					texCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
+					normals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
+					continue;
 				}
 			}
 		}
@@ -438,8 +434,6 @@ int main(int argc, char** argv) {
 		facesIndex.push_back({ mesh.F(i).v[0] });
 		facesIndex.push_back({ mesh.F(i).v[1] });
 		facesIndex.push_back({ mesh.F(i).v[2] });
-
-		//std::cout << mesh.FN(i).v[0] << ", \n";
 	}
 
 
@@ -448,13 +442,14 @@ int main(int argc, char** argv) {
 	std::cout << texCoords.size() << "  <- Tex\n";
 	std::cout << mesh.NF() << "  <- Faces\n";
 	std::cout << mesh.NV() << "  <- Original Vertex number\n";
-	
+	std::cout << mesh.NVN() << "  <- Original Normal number\n";
+	std::cout << mesh.NVT() << "  <- Original Tex number\n";
 
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -5.0f, 100.0f);
-	//projection = glm::perspective(45.0f, (GLfloat)windowWidth / (GLfloat)windowHeight, 1.0f, 1500.0f);
+	projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -5.0f, 200000.0f);
+	//projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 1.0f, 100.0f);
 
 	view = glm::lookAt(
 		glm::vec3(-2.0f, 0.0f, 0.5f),
@@ -494,11 +489,32 @@ int main(int argc, char** argv) {
 	
 	glEnableVertexAttribArray(2);//antes de renderizar
 
+	//texcoord
+	glCreateBuffers(1, &vboTexCoords);
+	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
+	glNamedBufferStorage(vboTexCoords, texCoords.size() * sizeof(glm::vec2), texCoords.data(), 0);
+	glVertexAttribPointer(3, 2, GL_FLOAT,GL_FALSE, sizeof(glm::vec2), 0);
+
+	glEnableVertexAttribArray(3);
+
 	//indices
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
 
+	//texture
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+	
+	//filter
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//Tiling
+	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	//vertex and fragment shader compilation
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
@@ -514,7 +530,11 @@ int main(int argc, char** argv) {
 
 	shaderProgram = program.GetID();
 
+	
 	glUseProgram(shaderProgram);
+
+	GLint sampler = glGetUniformLocation(shaderProgram, "tex");
+	glUniform1i(sampler, 0);
 
 	//Uniform variable initialization
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
