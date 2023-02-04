@@ -260,10 +260,9 @@ int main(int argc, char** argv) {
 	lodepng::State state; //optionally customize this one
 
 	std::cout<< "Materials: " << mesh.NM() << "\n";
-	
+	std::cout << "MAP: " << mesh.M(0).map_Kd << "\n";
 
-	//unsigned error = lodepng::load_file(png, "dingus_nowhiskers.png"); //load the image file with given filename
-	unsigned error = lodepng::load_file(png, "brick.png");
+	unsigned error = lodepng::load_file(png, std::string(mesh.M(0).map_Kd).c_str()); //load the image file with given filename
 	if (!error) error = lodepng::decode(image, width, height, state, png);
 
 	//if there's an error, display it
@@ -281,7 +280,7 @@ int main(int argc, char** argv) {
 	std::vector<vertexIndices> list{};
 	std::vector<bool> checkVertex(n, false);
 	
-	for (int i = 0; i < nf-1; i++) {
+	for (int i = 0; i < nf; i++) {
 		for (int k = 0; k < 3; k++) {
 			
 			if (mesh.F(i).v[k]>= n || checkVertex[mesh.F(i).v[k]]) {
@@ -347,7 +346,7 @@ int main(int argc, char** argv) {
 	int nNormals = mesh.NVN();
 	int normalIndex{};
 
-	for (int i = 0; i < nf - 1; i++) {
+	for (int i = 0; i < nf; i++) {
 		for (int k = 0; k < 3; k++) {
 
 			if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
@@ -356,7 +355,6 @@ int main(int argc, char** argv) {
 
 			for (int j = i; j < nf; j++) {
 				if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FT(i).v[k] != mesh.FT(j).v[k]) { //works!
-					//std::cout <<"(" << mesh.FT(i).v[k] << ", " << mesh.FT(j).v[k] << ")";
 					if (list.empty()) {
 						int vertexI = mesh.F(i).v[k];
 						int normalI = mesh.FN(i).v[k];
@@ -403,7 +401,7 @@ int main(int argc, char** argv) {
 						//mesh.VN(mesh.FN(f).v[k]).x
 						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
 							mesh.F(f).v[k] = tSize;
-							mesh.FN(f).v[k] = tSize;
+							mesh.FN(f).v[k] = x.normal;
 						}
 					}
 				}
@@ -418,13 +416,13 @@ int main(int argc, char** argv) {
 
 	for (int f = 0; f < mesh.NF(); f++) {
 		for (int k = 0; k < 3; k++) {
-			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.FT(f).v[k] << " \n";
+			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.GetMaterialFirstFace(f) << " \n";
 			for (int j = 0; j < nf; j++) {
 				if (mesh.F(j).v[k] == texIndex) {
 					texIndex++;
 					texCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
 					normals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
-					continue;
+					//continue;
 				}
 			}
 		}

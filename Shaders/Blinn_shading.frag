@@ -15,6 +15,7 @@ float difuseLight( vec3 normalSurface, vec3 lightDir){
 	return max(0, dot(normalSurface, lightDir));
 }
 void main() {
+	//ocolor = vec4(normal,1);
 	vec3 camDir = - (mv * pos).xyz;
 	vec3 normalN = normalize(normal);
 	vec3 halfVec = normalize((camDir + lightD)/2);
@@ -22,9 +23,9 @@ void main() {
 	float difuse = difuseLight(normalN, lightD);
 	//ocolor = vec4(pow(specular, 90).xxx, 1);
 	//ocolor =  (difuse * color + ceil(difuse) * pow(specular, 2000));
-	//ocolor =  texture(tex, vec2(texCoord.x/2, texCoord.y/2)) * (difuse +0.1f+ ceil(difuse) * pow(specular, 2000));
-	ocolor =  texture(tex, vec2(texCoord.x, texCoord.y)) * (difuse +0.2f+ ceil(difuse) * pow(specular, 2000));
-	//ocolor = vec4(1-texCoord.x, 1-texCoord.y, 0, 1);
+	ocolor =  texture(tex, vec2(texCoord.x, 1-texCoord.y)) * (difuse +0.1f+ ceil(difuse) * pow(specular, 2000));
+	//ocolor =  texture(tex, vec2(texCoord.x, 1-texCoord.y));
+	//ocolor = vec4(texCoord.x, texCoord.y, 0, 1);
 	//ocolor = color;
-	//ocolor = vec4(normalN,1);
+	
 }
