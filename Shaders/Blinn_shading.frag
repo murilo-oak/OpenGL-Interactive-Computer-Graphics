@@ -27,5 +27,5 @@ void main() {
 	//ocolor =  texture(tex, vec2(texCoord.x, 1-texCoord.y));
 	//ocolor = vec4(texCoord.x, texCoord.y, 0, 1);
 	//ocolor = color;
-	
+	//ocolor = normalN.xyzz;
 }

@@ -13,10 +13,15 @@
 
 float timeD;
 GLuint vao{};
+GLuint vaoPlane{};
 GLuint vbo{};
+GLuint vboPlane{};
 GLuint vboNormals{};
+GLuint vboNormalsPlane{};
 GLuint vboTexCoords{};
+GLuint vboTexCoordsPlane{};
 GLuint ebo{};
+GLuint eboPlane{};
 GLuint shaderProgram;
 int texID{};
 
@@ -47,10 +52,33 @@ struct vertexIndices{
 	int texCoord;
 };
 std::vector<vertex> vertices{
-		{-1.0f, -1.0f, 1.0f,  1.0f, 0.0f, 0.0f }, // Vertex 1
-		{ 0.0f,  1.0f, 1.0f,  0.0f, 1.0f, 0.0f }, // Vertex 2
-		{ 1.0f, -1.0f, 1.0f,  0.0f, 0.0f, 1.0f }  // Vertex 3
+	// positions          // colors           
+	{13.5f,  13.5f, 0.0f,   1.0f, 0.0f, 0.0f},   // top right
+	{13.5f, -13.5f, 0.0f,   0.0f, 1.0f, 0.0f },   // bottom right
+	{-13.5f, -13.5f, 0.0f,   0.0f, 0.0f, 1.0f},   // bottom left
+	{-13.5f,  13.5f, 0.0f,   1.0f, 1.0f, 0.0f}   // top left 
 };
+
+std::vector<normal> normalsPlane{
+	// positions          // colors           
+	{0.0f, 0.0f, 1.0f},   // top right
+	{0.0f, 0.0f, 1.0f },   // bottom right
+	{0.0f, 0.0f, 1.0f},   // bottom left
+	{0.0f, 0.0f, 1.0f}   // top left 
+};
+
+std::vector<glm::vec2> texcoordPlane{
+	{1.0f, 1.0f},   // top right
+	{1.0f, 0.0f },   // bottom right
+	{0.0f, 0.0f},   // bottom left
+	{0.0f, 1.0f}    // top left 
+};
+
+unsigned int facesPlane[] {
+	2, 1, 0,
+	2, 0, 3
+};
+
 
 glm::mat4 rotX = glm::mat4(1.0f);
 glm::mat4 rotY = glm::mat4(1.0f);
@@ -211,13 +239,23 @@ void  specialFunc(int key, int x, int y) {
 
 void myDisplayTeapot(){
 	glDepthRange(0.0, 1);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearDepth(0.5);
+	glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+	//glClearDepth(0.5);
 	glEnable(GL_DEPTH_TEST);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, windowWidth, windowHeight);
+
+	glBindVertexArray(vaoPlane);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
@@ -446,8 +484,8 @@ int main(int argc, char** argv) {
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -5.0f, 200000.0f);
-	//projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 1.0f, 100.0f);
+	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -5.0f, 200000.0f);
+	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 1.0f, 100.0f);
 
 	view = glm::lookAt(
 		glm::vec3(-2.0f, 0.0f, 0.5f),
@@ -495,10 +533,44 @@ int main(int argc, char** argv) {
 
 	glEnableVertexAttribArray(3);
 
+	glGenVertexArrays(1, &vaoPlane);
+	glBindVertexArray(vaoPlane);
+
 	//indices
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
+
+	//positions
+	glCreateBuffers(1, &vboPlane);
+	glBindBuffer(GL_ARRAY_BUFFER, vboPlane);
+	glNamedBufferStorage(vboPlane, 4 * sizeof(vertex), vertices.data(), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
+
+	glEnableVertexAttribArray(0);//antes de renderizar
+	glEnableVertexAttribArray(1);//antes de renderizar
+
+	//normals
+	glCreateBuffers(1, &vboNormalsPlane);
+	glBindBuffer(GL_ARRAY_BUFFER, vboNormalsPlane);
+	glNamedBufferStorage(vboNormalsPlane, normalsPlane.size() * sizeof(normal), normalsPlane.data(), 0);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
+
+	glEnableVertexAttribArray(2);//antes de renderizar
+
+	//texcoord
+	glCreateBuffers(1, &vboTexCoordsPlane);
+	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoordsPlane);
+	glNamedBufferStorage(vboTexCoordsPlane, texcoordPlane.size() * sizeof(glm::vec2), texcoordPlane.data(), 0);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+
+	glEnableVertexAttribArray(3);
+
+
+	glGenBuffers(1, &eboPlane);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
 
 	//texture
 	glBindTexture(GL_TEXTURE_2D, texID);
