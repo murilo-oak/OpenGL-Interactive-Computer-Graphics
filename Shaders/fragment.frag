@@ -4,5 +4,6 @@ in vec4 color;
 layout(location = 0) out vec4 ocolor;
 
 void main() {
-	ocolor = color;
+	
+	ocolor = vec4(1.0,0.0,0.0,1.0);
 }

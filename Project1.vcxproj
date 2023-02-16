@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,8 +156,10 @@
     <ClInclude Include="cyCodeBase\cyGL.h" />
     <ClInclude Include="cyCodeBase\cyIVector.h" />
     <ClInclude Include="cyCodeBase\cyTriMesh.h" />
+    <ClInclude Include="lodepng\lodepng.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Blinn_shading.frag" />
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\vertex.vert" />
   </ItemGroup>
