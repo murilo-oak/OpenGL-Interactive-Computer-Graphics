@@ -23,6 +23,8 @@ GLuint vboTexCoordsPlane{};
 GLuint ebo{};
 GLuint eboPlane{};
 GLuint shaderProgram;
+GLuint frameBuffer{};
+GLuint renderedTexture{};
 int texID{};
 
 std::vector<cy::Vec3f> geometryMesh;
@@ -33,6 +35,8 @@ int preMouseY;
 
 int windowWidth{500};
 int windowHeight{500};
+
+int texWidth{ 500 }, texHeight{ 500};
 
 float angleX = 0.0f;
 float angleY = 0.0f;
@@ -239,26 +243,34 @@ void  specialFunc(int key, int x, int y) {
 
 void myDisplayTeapot(){
 	glDepthRange(0.0, 1);
-	glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 	//glClearDepth(0.5);
 	glEnable(GL_DEPTH_TEST);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glViewport(0, 0, windowWidth, windowHeight);
-
-	glBindVertexArray(vaoPlane);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 
 	glBindVertexArray(vao);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	glViewport(0, 0, texWidth, texHeight);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
+
+	glGenerateTextureMipmap(renderedTexture);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, windowWidth, windowHeight);
+	glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+	glBindVertexArray(vaoPlane);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	//glDrawArrays(GL_POINTS, 0, teapot.size());
 	glutSwapBuffers();
 }
@@ -586,6 +598,36 @@ int main(int argc, char** argv) {
 	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S, GL_REPEAT);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	//vertex and fragment shader compilation
+
+	//framebuffer
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+
+	//renderedTexture
+	glGenTextures(1, &renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	//depth buffer
+	GLuint depthBuffer{};
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texWidth, texHeight);
+
+	//configure framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+	GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0}; 
+
+	//if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER != GL_FRAMEBUFFER_COMPLETE)) {
+	//	return false;
+	//}
+
+
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
