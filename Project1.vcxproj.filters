@@ -21,6 +21,9 @@
     <ClCompile Include="lodepng\lodepng.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
+    <ClCompile Include="cubemap\Cubemap.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cyCodeBase\cyIVector.h">
@@ -38,10 +41,36 @@
     <ClInclude Include="lodepng\lodepng.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
+    <ClInclude Include="cubemap\Cubemap.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\vertex.vert" />
     <None Include="Shaders\Blinn_shading.frag" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cubemap\cubemap_negx.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_negy.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_negz.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_posx.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_posy.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_posz.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="cubemap\cubemap_readme.txt" />
   </ItemGroup>
 </Project>

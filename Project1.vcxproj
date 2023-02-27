@@ -148,10 +148,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cubemap\Cubemap.cpp" />
     <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cubemap\Cubemap.h" />
     <ClInclude Include="cyCodeBase\cyCore.h" />
     <ClInclude Include="cyCodeBase\cyGL.h" />
     <ClInclude Include="cyCodeBase\cyIVector.h" />
@@ -162,6 +164,17 @@
     <None Include="Shaders\Blinn_shading.frag" />
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\vertex.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cubemap\cubemap_negx.png" />
+    <Image Include="cubemap\cubemap_negy.png" />
+    <Image Include="cubemap\cubemap_negz.png" />
+    <Image Include="cubemap\cubemap_posx.png" />
+    <Image Include="cubemap\cubemap_posy.png" />
+    <Image Include="cubemap\cubemap_posz.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="cubemap\cubemap_readme.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
