@@ -163,7 +163,9 @@
   <ItemGroup>
     <None Include="Shaders\Blinn_shading.frag" />
     <None Include="Shaders\fragment.frag" />
+    <None Include="Shaders\fragmentcube.frag" />
     <None Include="Shaders\vertex.vert" />
+    <None Include="Shaders\vertexcube.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="cubemap\cubemap_negx.png" />

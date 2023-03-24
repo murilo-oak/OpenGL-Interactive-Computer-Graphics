@@ -15,18 +15,32 @@
 float timeD;
 GLuint vao{};
 GLuint vaoPlane{};
+GLuint vaoCube{};
+
 GLuint vbo{};
 GLuint vboPlane{};
+GLuint vboCube{};
+
 GLuint vboNormals{};
 GLuint vboNormalsPlane{};
+GLuint vboNormalsCube{};
+
 GLuint vboTexCoords{};
 GLuint vboTexCoordsPlane{};
+GLuint vboTexCoordsCube{};
+
 GLuint ebo{};
 GLuint eboPlane{};
+GLuint eboCube{};
+
 GLuint shaderProgram;
+GLuint shaderSkyboxProgram;
+
 GLuint frameBuffer{};
 GLuint renderedTexture{};
 int texID{};
+
+GLuint texCubeID{};
 
 std::vector<cy::Vec3f> geometryMesh;
 std::vector<unsigned int> facesIndex;
@@ -56,6 +70,7 @@ struct vertexIndices{
 	int normal;
 	int texCoord;
 };
+
 std::vector<vertex> vertices{
 	// positions          // colors           
 	{13.5f,  13.5f, 0.0f,   1.0f, 0.0f, 0.0f},   // top right
@@ -84,6 +99,50 @@ unsigned int facesPlane[] {
 	2, 0, 3
 };
 
+float skyboxVertices[] = {
+	// positions          
+	-1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	-1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+
+	-1.0f, -1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+
+	-1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f
+};
 
 glm::mat4 rotX = glm::mat4(1.0f);
 glm::mat4 rotY = glm::mat4(1.0f);
@@ -91,6 +150,9 @@ glm::mat4 rotY = glm::mat4(1.0f);
 glm::mat4 transformCamera;
 glm::mat4 projection;
 glm::mat4 view;
+
+glm::mat4 viewCube;
+
 
 glm::mat4 model;
 glm::mat4 mvp;
@@ -108,53 +170,11 @@ std::vector<glm::vec2> texCoords{};
 std::vector<glm::vec2> texCoords2{};
 
 cy::GLSLProgram program;
+cy::GLSLProgram skyboxProgram;
 
-//class cubemap {
-//public:
-//	unsigned int height{}, width{};
-//	
-//	lodepng::State state[6];
-//	
-//	std::vector<unsigned char> png[6];
-//	std::vector<unsigned char> image[6];
-//
-//	void loadCubeMap() {
-//		//face positive x
-//		unsigned error = lodepng::load_file(png[0], "cubemap/cubemap_posx.png"); //load the image file with given filename
-//		if (!error) error = lodepng::decode(image[0], width, height, state[0], png[0]);
-//		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-//
-//		//face positive y
-//		error = lodepng::load_file(png[1], "cubemap/cubemap_posy.png"); //load the image file with given filename
-//		if (!error) error = lodepng::decode(image[1], width, height, state[1], png[1]);
-//		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-//
-//
-//		//face positive z
-//		error = lodepng::load_file(png[2], "cubemap/cubemap_posz.png"); //load the image file with given filename
-//		if (!error) error = lodepng::decode(image[2], width, height, state[2], png[2]);
-//		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-//
-//		////face negative x
-//		error = lodepng::load_file(png[3], "cubemap/cubemap_negx.png"); //load the image file with given filename
-//		if (!error) error = lodepng::decode(image[3], width, height, state[3], png[3]);
-//		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-//
-//		//face negative y
-//		error = lodepng::load_file(png[4], "cubemap/cubemap_negy.png"); //load the image file with given filename
-//		if (!error) error = lodepng::decode(image[4], width, height, state[4], png[4]);
-//		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-//
-//		////face negative z
-//		error = lodepng::load_file(png[5], "cubemap/cubemap_negz.png"); //load the image file with given filename
-//		if (!error) error = lodepng::decode(image[5], width, height, state[5], png[5]);
-//		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-//	}
-//};
+glm::vec3 tr = glm::vec3(3.0f * sin(angleY) * sin(angleX), 0.5f + 3.0f * cos(angleY), 3.0f * sin(angleY) * cos(angleX));
 
 Cubemap cube;
-
-
 
 void myIdle() {
 	glutPostRedisplay();
@@ -177,17 +197,14 @@ void updateMouse(int x, int y) {
 
 }
 void onLeftButton(int x, int y) {
-	//angleY = (x - preMouseX)/40.0f;
-	angleX = (y - preMouseY)/40.0f;
+	//angleY += (x - preMouseX)/40.0f;
 
-	//rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-	//rotY = glm::rotate(rotY, angleY, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	translation += glm::vec3(angleX,0.f,0.f);
+	translation += glm::normalize(tr) * ((y - preMouseY) / 40.0f);
+	std::cout << "T: " << glm::length(translation) << std::endl;
 	view = glm::lookAt(
-		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
-		glm::vec3(0.0f, 0.0f, 0.5f),
-		glm::vec3(0.0f, 0.0f, 1.0f)
+		tr + translation,
+		glm::vec3(0.0f, 0.5f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
 
@@ -198,14 +215,29 @@ void onLeftButton(int x, int y) {
 	mv = glm::inverse(mv);
 	mv = glm::transpose(mv);
 
+	glUseProgram(program.GetID());
+
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
 	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
 	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
 
-
 	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	glUseProgram(skyboxProgram.GetID());
+
+	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
+	mvp = projection * viewCube;
+
+	uniformLoc = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	uniformLocmv = glGetUniformLocation(skyboxProgram.GetID(), "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+	uniformLocmv4 = glGetUniformLocation(skyboxProgram.GetID(), "mv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
 	glutPostRedisplay();
 
@@ -232,30 +264,65 @@ void onLeftButton2(int x, int y) {
 	updateMouse(x, y);
 }
 void onRightButton(int x, int y) {
-	translation.y += (y - preMouseY) / 400.0f;
+	//translation.y += (y - preMouseY) / 400.0f;
+	float r;
 
+	if (glm::dot(translation-tr, tr)< 0.0) {
+		r = 3 - glm::length(translation);
+	}
+	else {
+		r = 3 + glm::length(translation);
+	}
+
+	angleY += (y - preMouseY) / 400.0f;
+	angleX += (x - preMouseX) / 400.0f;
+	
+	tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
+	
+	//translation = glm::normalize(tr) * (r-3);
 
 	view = glm::lookAt(
-		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
-		glm::vec3(0.0f, 0.0f, 0.5f),
-		glm::vec3(0.0f, 0.0f, 1.0f)
+		tr,
+		glm::vec3(0.0f, 0.5f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
-	mvp = projection * model * rotX * rotY * transform * view;
+	//view *= glm::translate(glm::mat4(1.0f), glm::vec3(view[3][0], view[3][1], view[3][2]));
+
+	//glm::mat4 trans_to_pivot = glm::translate(view, -glm::vec3(5.0f, 0.5f, 0.0f));
+	//glm::mat4 trans_from_pivot = glm::translate(view, glm::vec3(5.0f, 0.5f, 0.0f));
+
+	//view = trans_from_pivot * view * trans_to_pivot;
+	mvp = projection * model * rotX * rotY * view;
+
+
+	//mvp = projection  * model * transform * view;
 	mv4 = model * rotX * rotY * transform * view;
 
 	mv = mv4;
 	mv = glm::inverse(mv);
 	mv = glm::transpose(mv);
 
+
+
+	glUseProgram(program.GetID());
+
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-	
+
 	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
 	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
 
 	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	glUseProgram(skyboxProgram.GetID());
+
+	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
+	mvp = projection * viewCube;
+
+	uniformLoc = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
 
 	glutPostRedisplay();
@@ -289,24 +356,42 @@ void  specialFunc(int key, int x, int y) {
 }
 
 void myDisplayTeapot(){
-	glDepthRange(0.0, 1);
+	//glDepthRange(0.0, 1);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glUseProgram(skyboxProgram.GetID());
+	
+	glDepthMask(GL_FALSE);
+	glBindVertexArray(vaoCube);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDepthMask(GL_TRUE);
+
 	//glClearDepth(0.5);
 	glEnable(GL_DEPTH_TEST);
 
 
+	glUseProgram(program.GetID());
+
 
 	glBindVertexArray(vao);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, texWidth, texHeight);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
 
-	glGenerateTextureMipmap(renderedTexture);
+	/*glGenerateTextureMipmap(renderedTexture);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, windowWidth, windowHeight);
@@ -317,7 +402,9 @@ void myDisplayTeapot(){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
+
+
 	//glDrawArrays(GL_POINTS, 0, teapot.size());
 	glutSwapBuffers();
 }
@@ -533,25 +620,24 @@ int main(int argc, char** argv) {
 		facesIndex.push_back({ mesh.F(i).v[2] });
 	}
 
-
-	std::cout << teapot.size() << "  <- Vertices\n";
-	std::cout << normals.size() << "  <- Normals\n";
-	std::cout << texCoords.size() << "  <- Tex\n";
-	std::cout << mesh.NF() << "  <- Faces\n";
-	std::cout << mesh.NV() << "  <- Original Vertex number\n";
-	std::cout << mesh.NVN() << "  <- Original Normal number\n";
-	std::cout << mesh.NVT() << "  <- Original Tex number\n";
+	std::cout << teapot.size() << "  <- Vertices" << std::endl;
+	std::cout << normals.size() << "  <- Normals" << std::endl;
+	std::cout << texCoords.size() << "  <- Tex" << std::endl;
+	std::cout << mesh.NF() << "  <- Faces" << std::endl;
+	std::cout << mesh.NV() << "  <- Original Vertex number" << std::endl;
+	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
+	std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 
 	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -5.0f, 200000.0f);
-	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 1.0f, 100.0f);
+	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 200000.0f);
+	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.1f, 100.0f);
 
 	view = glm::lookAt(
-		glm::vec3(-2.0f, 0.0f, 0.5f),
+		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
 		glm::vec3(0.0f, 0.0f, 0.5f),
-		glm::vec3(0.0f, 0.0f, 1.0f)
+		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
 	model = glm::mat4(1.0f);
@@ -628,10 +714,12 @@ int main(int argc, char** argv) {
 
 	glEnableVertexAttribArray(3);
 
-
 	glGenBuffers(1, &eboPlane);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
+
+
+	glEnableVertexAttribArray(3);
 
 	//texture
 	glBindTexture(GL_TEXTURE_2D, texID);
@@ -690,7 +778,6 @@ int main(int argc, char** argv) {
 	program.Link();
 
 	shaderProgram = program.GetID();
-
 	
 	glUseProgram(shaderProgram);
 
@@ -714,7 +801,69 @@ int main(int argc, char** argv) {
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
 
 
-	if (uniformLoc != -1) {
+	//Cubemap
+	glGenVertexArrays(1, &vaoCube);
+	glBindVertexArray(vaoCube);
+
+	//positions
+	glCreateBuffers(1, &vboCube);
+	glBindBuffer(GL_ARRAY_BUFFER, vboCube);
+	glNamedBufferStorage(vboCube,  sizeof(skyboxVertices), skyboxVertices, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glEnableVertexAttribArray(0);
+
+	glGenTextures(1, &texCubeID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
+
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
+	}
+
+
+	//cube filter parameters
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+
+	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
+	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
+
+
+	skyboxProgram.CreateProgram();
+
+	skyboxProgram.AttachShader(fragmentS);
+	skyboxProgram.AttachShader(vertexS);
+	skyboxProgram.Link();
+
+	glUseProgram(skyboxProgram.GetID());
+
+	sampler = glGetUniformLocation(skyboxProgram.GetID(), "skybox");
+	glUniform1i(sampler, 0);
+
+	//Uniform variable initialization
+	GLint uniformLocS = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
+	glUniformMatrix4fv(uniformLocS, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	GLint uniformLocmvS = glGetUniformLocation(skyboxProgram.GetID(), "mv3");
+	glUniformMatrix3fv(uniformLocmvS, 1, GL_FALSE, glm::value_ptr(mv));
+
+	GLint uniformLocmv4S = glGetUniformLocation(skyboxProgram.GetID(), "mv4");
+	glUniformMatrix4fv(uniformLocmv4S, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	GLint uniformTransLocS = glGetUniformLocation(skyboxProgram.GetID(), "tranform");
+	glUniformMatrix4fv(uniformTransLocS, 1, GL_FALSE, glm::value_ptr(transformCamera));
+
+	GLint uniformLightDirS = glGetUniformLocation(skyboxProgram.GetID(), "lightDir");
+	glUniform3fv(uniformLightDirS, 1, &lightDir[0]);
+
+
+
+	if (uniformLocS != -1) {
 		std::cout << "certo";
 	}
 	else {

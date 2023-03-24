@@ -49,6 +49,8 @@
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\vertex.vert" />
     <None Include="Shaders\Blinn_shading.frag" />
+    <None Include="Shaders\vertexcube.vert" />
+    <None Include="Shaders\fragmentcube.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="cubemap\cubemap_negx.png">
