@@ -53,8 +53,8 @@ int windowHeight{500};
 
 int texWidth{ 500 }, texHeight{ 500};
 
-float angleX = 0.0f;
-float angleY = 0.0f;
+float angleX = 0.90f;
+float angleY = 0.90f;
 
 struct vertex {
 	float x, y, z;
@@ -173,6 +173,7 @@ cy::GLSLProgram program;
 cy::GLSLProgram skyboxProgram;
 
 glm::vec3 tr = glm::vec3(3.0f * sin(angleY) * sin(angleX), 0.5f + 3.0f * cos(angleY), 3.0f * sin(angleY) * cos(angleX));
+float r = 3;
 
 Cubemap cube;
 
@@ -199,10 +200,10 @@ void updateMouse(int x, int y) {
 void onLeftButton(int x, int y) {
 	//angleY += (x - preMouseX)/40.0f;
 
-	translation += glm::normalize(tr) * ((y - preMouseY) / 40.0f);
-	std::cout << "T: " << glm::length(translation) << std::endl;
+	r += ((y - preMouseY) / 40.0f);
+	tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
 	view = glm::lookAt(
-		tr + translation,
+		tr,
 		glm::vec3(0.0f, 0.5f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
@@ -264,45 +265,23 @@ void onLeftButton2(int x, int y) {
 	updateMouse(x, y);
 }
 void onRightButton(int x, int y) {
-	//translation.y += (y - preMouseY) / 400.0f;
-	float r;
-
-	if (glm::dot(translation-tr, tr)< 0.0) {
-		r = 3 - glm::length(translation);
-	}
-	else {
-		r = 3 + glm::length(translation);
-	}
-
 	angleY += (y - preMouseY) / 400.0f;
 	angleX += (x - preMouseX) / 400.0f;
 	
 	tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
-	
-	//translation = glm::normalize(tr) * (r-3);
 
 	view = glm::lookAt(
 		tr,
 		glm::vec3(0.0f, 0.5f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
-
-	//view *= glm::translate(glm::mat4(1.0f), glm::vec3(view[3][0], view[3][1], view[3][2]));
-
-	//glm::mat4 trans_to_pivot = glm::translate(view, -glm::vec3(5.0f, 0.5f, 0.0f));
-	//glm::mat4 trans_from_pivot = glm::translate(view, glm::vec3(5.0f, 0.5f, 0.0f));
-
-	//view = trans_from_pivot * view * trans_to_pivot;
+	
 	mvp = projection * model * rotX * rotY * view;
-
-
-	//mvp = projection  * model * transform * view;
 	mv4 = model * rotX * rotY * transform * view;
 
 	mv = mv4;
 	mv = glm::inverse(mv);
 	mv = glm::transpose(mv);
-
 
 
 	glUseProgram(program.GetID());
@@ -358,14 +337,16 @@ void  specialFunc(int key, int x, int y) {
 void myDisplayTeapot(){
 	//glDepthRange(0.0, 1);
 	
+
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
+
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//glClear(GL_COLOR_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	glViewport(0, 0, texWidth, texHeight);
 	glUseProgram(skyboxProgram.GetID());
 	
 	glDepthMask(GL_FALSE);
@@ -373,7 +354,7 @@ void myDisplayTeapot(){
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
-
+	
 	//glClearDepth(0.5);
 	glEnable(GL_DEPTH_TEST);
 
@@ -384,11 +365,11 @@ void myDisplayTeapot(){
 	glBindVertexArray(vao);
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, texWidth, texHeight);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	//glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texID);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	
 	glDrawElements(GL_TRIANGLES, facesIndex.size(), GL_UNSIGNED_INT, 0);
 
 	/*glGenerateTextureMipmap(renderedTexture);
@@ -628,24 +609,27 @@ int main(int argc, char** argv) {
 	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
 	std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 
-	rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-	rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
+	//rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	//rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 200000.0f);
-	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.1f, 100.0f);
-
+	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.5f, 100.0f);
+	//tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
+	
 	view = glm::lookAt(
-		glm::vec3(-2.0f, 0.0f, 0.5f) + translation,
-		glm::vec3(0.0f, 0.0f, 0.5f),
+		tr,
+		glm::vec3(0.0f, 0.5f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
 	model = glm::mat4(1.0f);
+	//mvp = projection * model * rotX * rotY * view;
+	//mvp = projection * model * view;
 	mvp = projection * model * view;
-	mvp = projection * model * rotX * rotY * view;
 
-	mv4 = (model * view);
-	mv = mv4;
+
+	mv4 = model * view;
+	mv = glm::mat4(glm::mat3(mv4));
 	mv = glm::inverse(mv);
 	mv = glm::transpose(mv);
 	
@@ -780,8 +764,8 @@ int main(int argc, char** argv) {
 	shaderProgram = program.GetID();
 	
 	glUseProgram(shaderProgram);
-
-	GLint sampler = glGetUniformLocation(shaderProgram, "tex");
+	
+	GLint sampler = glGetUniformLocation(program.GetID(), "tex");
 	glUniform1i(sampler, 0);
 
 	//Uniform variable initialization
@@ -840,10 +824,16 @@ int main(int argc, char** argv) {
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
+
 	glUseProgram(skyboxProgram.GetID());
 
 	sampler = glGetUniformLocation(skyboxProgram.GetID(), "skybox");
 	glUniform1i(sampler, 0);
+
+
+	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
+	mv = viewCube;
+	mvp = projection * viewCube;
 
 	//Uniform variable initialization
 	GLint uniformLocS = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
@@ -860,7 +850,6 @@ int main(int argc, char** argv) {
 
 	GLint uniformLightDirS = glGetUniformLocation(skyboxProgram.GetID(), "lightDir");
 	glUniform3fv(uniformLightDirS, 1, &lightDir[0]);
-
 
 
 	if (uniformLocS != -1) {
