@@ -158,8 +158,8 @@ glm::mat4 model;
 glm::mat4 mvp;
 glm::mat4 transform;
 
-glm::mat3 mv;
-glm::mat4 mv4;
+glm::mat3 mv{};
+glm::mat4 mv4{};
 
 glm::vec3 translation(0.0f, 0.0f, 0.0f);
 glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
@@ -172,10 +172,15 @@ std::vector<glm::vec2> texCoords2{};
 cy::GLSLProgram program;
 cy::GLSLProgram skyboxProgram;
 
-glm::vec3 tr = glm::vec3(3.0f * sin(angleY) * sin(angleX), 0.5f + 3.0f * cos(angleY), 3.0f * sin(angleY) * cos(angleX));
-float r = 3;
+float camRadius = 3;
+glm::vec3 camPos{};
 
 Cubemap cube;
+
+void updateCameraPos() {
+	camPos = glm::vec3(camRadius * sin(angleY) * sin(angleX), 0.5f + camRadius * cos(angleY), camRadius * sin(angleY) * cos(angleX));
+}
+
 
 void myIdle() {
 	glutPostRedisplay();
@@ -200,10 +205,11 @@ void updateMouse(int x, int y) {
 void onLeftButton(int x, int y) {
 	//angleY += (x - preMouseX)/40.0f;
 
-	r += ((y - preMouseY) / 40.0f);
-	tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
+	camRadius += ((y - preMouseY) / 40.0f);
+	updateCameraPos();
+	
 	view = glm::lookAt(
-		tr,
+		camPos,
 		glm::vec3(0.0f, 0.5f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
@@ -249,11 +255,10 @@ void onLeftButton2(int x, int y) {
 	angleY = (x - preMouseX) / 40.0f;
 	angleX = (y - preMouseY) / 40.0f;
 
-	translation = +glm::vec4(angleX, 0, 0, 0);
-	glm::vec3 vector = glm::vec3(lightDir);
+	//translation = +glm::vec4(angleX, 0, 0, 0);
 	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 0.0f, 1.0f));
-	glm::vec4 rotatedVector = rotationMatrixX * rotationMatrixY * glm::vec4(vector, 1.0f);
+	glm::vec4 rotatedVector = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
 
 	lightDir = rotatedVector;
 
@@ -268,10 +273,10 @@ void onRightButton(int x, int y) {
 	angleY += (y - preMouseY) / 400.0f;
 	angleX += (x - preMouseX) / 400.0f;
 	
-	tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
+	updateCameraPos();
 
 	view = glm::lookAt(
-		tr,
+		camPos,
 		glm::vec3(0.0f, 0.5f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
@@ -335,16 +340,12 @@ void  specialFunc(int key, int x, int y) {
 }
 
 void myDisplayTeapot(){
-	//glDepthRange(0.0, 1);
-	
-
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glClear(GL_COLOR_BUFFER_BIT);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, texWidth, texHeight);
 	glUseProgram(skyboxProgram.GetID());
@@ -355,7 +356,6 @@ void myDisplayTeapot(){
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
 	
-	//glClearDepth(0.5);
 	glEnable(GL_DEPTH_TEST);
 
 
@@ -419,7 +419,6 @@ int main(int argc, char** argv) {
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
-	//std::cout << mesh.GetTexCoord(0, cy::Vec3f(0,1,0)).elem[0] <<" | " << mesh.GetTexCoord(0, cy::Vec3f(0, 1, 0)).elem[1] << " <- M \n";
 
 	std::vector<unsigned char> png;
 	std::vector<unsigned char> image; //the raw pixels
@@ -609,15 +608,12 @@ int main(int argc, char** argv) {
 	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
 	std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 
-	//rotX = glm::rotate(rotX, angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-	//rotY = glm::rotate(rotX, angleX, glm::vec3(0.0f, 1.0f, 0.0f));
-
 	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 200000.0f);
 	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.5f, 100.0f);
-	//tr = glm::vec3(r * sin(angleY) * sin(angleX), 0.5f + r * cos(angleY), r * sin(angleY) * cos(angleX));
+	updateCameraPos();
 	
 	view = glm::lookAt(
-		tr,
+		camPos,
 		glm::vec3(0.0f, 0.5f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
