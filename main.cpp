@@ -252,15 +252,11 @@ void onLeftButton(int x, int y) {
 }
 
 void onLeftButton2(int x, int y) {
-	angleY = (x - preMouseX) / 40.0f;
-	angleX = (y - preMouseY) / 40.0f;
+	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), (x - preMouseX) / 40.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), (y - preMouseY) / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::vec4 newLightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
 
-	//translation = +glm::vec4(angleX, 0, 0, 0);
-	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 0.0f, 1.0f));
-	glm::vec4 rotatedVector = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
-
-	lightDir = rotatedVector;
+	lightDir = newLightDir;
 
 	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
