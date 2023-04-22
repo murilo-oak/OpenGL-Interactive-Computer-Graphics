@@ -180,7 +180,7 @@ Cubemap cube;
 void updateCameraPos() {
 	camPos = glm::vec3(
 		camRadius * sin(angleY) * sin(angleX), 
-		0.5f + camRadius * cos(angleY), 
+		camRadius * cos(angleY), 
 		camRadius * sin(angleY) * cos(angleX)
 	);
 }
@@ -188,7 +188,7 @@ void updateCameraPos() {
 void updateViewMat() {
 	view = glm::lookAt(
 		camPos,
-		glm::vec3(0.0f, 0.5f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 }
@@ -413,21 +413,21 @@ int main(int argc, char** argv) {
 	cube.loadCubeMap();
 
 	cy::TriMesh mesh;
-	mesh.LoadFromFileObj("teapot.obj");
+	mesh.LoadFromFileObj("sphere.obj");
 
 	std::vector<unsigned char> png;
 	std::vector<unsigned char> image; //the raw pixels
-	unsigned width, height;
+	unsigned width{}, height{};
 	lodepng::State state; //optionally customize this one
 
 	std::cout<< "Materials: " << mesh.NM() << "\n";
-	std::cout << "MAP: " << mesh.M(0).map_Kd << "\n";
 
-	unsigned error = lodepng::load_file(png, std::string(mesh.M(0).map_Kd).c_str()); //load the image file with given filename
-	if (!error) error = lodepng::decode(image, width, height, state, png);
-
-	//if there's an error, display it
-	if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+	if (mesh.NM() > 0) {
+		std::cout << "MAP: " << mesh.M(0).map_Kd << "\n";
+		unsigned error = lodepng::load_file(png, std::string(mesh.M(0).map_Kd).c_str());
+		if (!error) error = lodepng::decode(image, width, height, state, png);
+		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+	}
 
 	//vector of vertices
 	int n = mesh.NV();
