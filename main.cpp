@@ -178,7 +178,19 @@ glm::vec3 camPos{};
 Cubemap cube;
 
 void updateCameraPos() {
-	camPos = glm::vec3(camRadius * sin(angleY) * sin(angleX), 0.5f + camRadius * cos(angleY), camRadius * sin(angleY) * cos(angleX));
+	camPos = glm::vec3(
+		camRadius * sin(angleY) * sin(angleX), 
+		0.5f + camRadius * cos(angleY), 
+		camRadius * sin(angleY) * cos(angleX)
+	);
+}
+
+void updateViewMat() {
+	view = glm::lookAt(
+		camPos,
+		glm::vec3(0.0f, 0.5f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	);
 }
 
 
@@ -203,16 +215,9 @@ void updateMouse(int x, int y) {
 
 }
 void onLeftButton(int x, int y) {
-	//angleY += (x - preMouseX)/40.0f;
-
 	camRadius += ((y - preMouseY) / 40.0f);
 	updateCameraPos();
-	
-	view = glm::lookAt(
-		camPos,
-		glm::vec3(0.0f, 0.5f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
+	updateViewMat();
 
 
 	mvp = projection * model * rotX * rotY * transform * view;
@@ -270,12 +275,7 @@ void onRightButton(int x, int y) {
 	angleX += (x - preMouseX) / 400.0f;
 	
 	updateCameraPos();
-
-	view = glm::lookAt(
-		camPos,
-		glm::vec3(0.0f, 0.5f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
+	updateViewMat();
 	
 	mvp = projection * model * rotX * rotY * view;
 	mv4 = model * rotX * rotY * transform * view;
@@ -411,7 +411,6 @@ int main(int argc, char** argv) {
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 	cube.loadCubeMap();
-	//cubeMap.loadCubeMap();
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
@@ -434,7 +433,6 @@ int main(int argc, char** argv) {
 	int n = mesh.NV();
 	for (int i = 0; i < n; i++) {
 		teapot.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f});
-		//std::cout << mesh.VT(mesh.FT(i).v[0]).x << ", " << mesh.VT(mesh.FT(i).v[0]).y << " \n";
 	}
 
 	int nf = mesh.NF();
@@ -606,13 +604,9 @@ int main(int argc, char** argv) {
 
 	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 200000.0f);
 	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.5f, 100.0f);
-	updateCameraPos();
 	
-	view = glm::lookAt(
-		camPos,
-		glm::vec3(0.0f, 0.5f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
+	updateCameraPos();
+	updateViewMat();
 
 	model = glm::mat4(1.0f);
 	//mvp = projection * model * rotX * rotY * view;
