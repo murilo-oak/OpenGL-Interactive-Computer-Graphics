@@ -160,6 +160,7 @@ glm::mat4 transform;
 
 glm::mat3 mv{};
 glm::mat4 mv4{};
+glm::mat4 invMv4{};
 
 glm::vec3 translation(0.0f, 0.0f, 0.0f);
 glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
@@ -203,9 +204,6 @@ void myKeyboard(unsigned char key, int x, int y) {
 		case 27:
 			glutLeaveMainLoop();
 			break;
-		case GLUT_ACTIVE_CTRL:
-			std::cout << "aaa\n";
-			break;
 	}
 	glutPostRedisplay();
 }
@@ -223,11 +221,13 @@ void onLeftButton(int x, int y) {
 	mvp = projection * model * rotX * rotY * transform * view;
 	mv4 = model * rotX * rotY * transform * view;
 
-	mv = mv4;
-	mv = glm::inverse(mv);
-	mv = glm::transpose(mv);
+	invMv4 = glm::inverse(mv4);
+	mv = glm::transpose(invMv4);
 
 	glUseProgram(program.GetID());
+
+	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
+	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
 
 	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -237,6 +237,9 @@ void onLeftButton(int x, int y) {
 
 	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	uniformLocmv4 = glGetUniformLocation(program.GetID(), "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
 
 	glUseProgram(skyboxProgram.GetID());
 
@@ -263,6 +266,9 @@ void onLeftButton2(int x, int y) {
 
 	lightDir = newLightDir;
 
+	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
+	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
+
 	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
 
@@ -280,9 +286,8 @@ void onRightButton(int x, int y) {
 	mvp = projection * model * rotX * rotY * view;
 	mv4 = model * rotX * rotY * transform * view;
 
-	mv = mv4;
-	mv = glm::inverse(mv);
-	mv = glm::transpose(mv);
+	invMv4 = glm::inverse(mv4);
+	mv = glm::transpose(invMv4);
 
 
 	glUseProgram(program.GetID());
@@ -295,6 +300,12 @@ void onRightButton(int x, int y) {
 
 	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	uniformLocmv4 = glGetUniformLocation(program.GetID(), "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+
+	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
+	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
 
 	glUseProgram(skyboxProgram.GetID());
 
@@ -413,7 +424,7 @@ int main(int argc, char** argv) {
 	cube.loadCubeMap();
 
 	cy::TriMesh mesh;
-	mesh.LoadFromFileObj("sphere.obj");
+	mesh.LoadFromFileObj("teapot.obj");
 
 	std::vector<unsigned char> png;
 	std::vector<unsigned char> image; //the raw pixels
@@ -609,15 +620,11 @@ int main(int argc, char** argv) {
 	updateViewMat();
 
 	model = glm::mat4(1.0f);
-	//mvp = projection * model * rotX * rotY * view;
-	//mvp = projection * model * view;
 	mvp = projection * model * view;
 
-
 	mv4 = model * view;
-	mv = glm::mat4(glm::mat3(mv4));
-	mv = glm::inverse(mv);
-	mv = glm::transpose(mv);
+	invMv4 = glm::inverse(mv4);
+	mv = glm::transpose(invMv4);
 	
 	transform = glm::translate(glm::mat4(1.0f), translation);
 
@@ -735,11 +742,13 @@ int main(int argc, char** argv) {
 	//}
 
 
+
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
 	cy::GLSLShader fragmentS;
-	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+	fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
+	//fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
 	
 	program.CreateProgram();
 
@@ -748,10 +757,29 @@ int main(int argc, char** argv) {
 	program.Link();
 
 	shaderProgram = program.GetID();
-	
 	glUseProgram(shaderProgram);
+
+	glGenTextures(1, &texCubeID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
+
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
+	}
+
+	//cube filter parameters
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+
+	GLint sampler{};
+	sampler = glGetUniformLocation(program.GetID(), "skybox");
+	glUniform1i(sampler, 0);
 	
-	GLint sampler = glGetUniformLocation(program.GetID(), "tex");
+	sampler = glGetUniformLocation(program.GetID(), "tex");
 	glUniform1i(sampler, 0);
 
 	//Uniform variable initialization
@@ -764,8 +792,11 @@ int main(int argc, char** argv) {
 	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
 
-	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "tranform");
-	glUniformMatrix4fv(uniformTransLoc, 1, GL_FALSE, glm::value_ptr(transformCamera));
+	uniformLocmv4 = glGetUniformLocation(program.GetID(), "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+
+	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "transform");
+	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
 
 	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
@@ -783,21 +814,7 @@ int main(int argc, char** argv) {
 
 	glEnableVertexAttribArray(0);
 
-	glGenTextures(1, &texCubeID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
-
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
-	}
-
-
-	//cube filter parameters
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);

@@ -51,6 +51,7 @@
     <None Include="Shaders\Blinn_shading.frag" />
     <None Include="Shaders\vertexcube.vert" />
     <None Include="Shaders\fragmentcube.frag" />
+    <None Include="Shaders\reflecting_surface.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="cubemap\cubemap_negx.png">

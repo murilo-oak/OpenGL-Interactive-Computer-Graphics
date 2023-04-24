@@ -13,7 +13,5 @@ uniform vec3 lightDir;
 
 void main() {
 	pos = vec4(iposition, 1);
-	vec3 dir = mv3 * iposition;
-	//gl_Position = vec4(ipositionpos,1);
 	gl_Position =  mvp * vec4(iposition, 1);
 }
