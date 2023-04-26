@@ -396,6 +396,133 @@ void myDisplayTeapot(){
 	glutSwapBuffers();
 }
 
+void setObject(){
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	//positions
+	glCreateBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glNamedBufferStorage(vbo, objectVertices.size() * sizeof(vertex), objectVertices.data(), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
+
+	glEnableVertexAttribArray(0);//antes de renderizar
+	glEnableVertexAttribArray(1);//antes de renderizar
+
+	//normals
+	glCreateBuffers(1, &vboNormals);
+	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+	glNamedBufferStorage(vboNormals, objectNormals.size() * sizeof(normal), objectNormals.data(), 0);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
+
+	glEnableVertexAttribArray(2);//antes de renderizar
+
+	//texcoord
+	glCreateBuffers(1, &vboTexCoords);
+	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
+	glNamedBufferStorage(vboTexCoords, objectTexCoords.size() * sizeof(glm::vec2), objectTexCoords.data(), 0);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+
+	glEnableVertexAttribArray(3);
+
+	glGenVertexArrays(1, &vaoPlane);
+	glBindVertexArray(vaoPlane);
+
+	//indices
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
+}
+void setPlane() {
+	//positions
+	glCreateBuffers(1, &vboPlane);
+	glBindBuffer(GL_ARRAY_BUFFER, vboPlane);
+	glNamedBufferStorage(vboPlane, 4 * sizeof(vertex), vertices.data(), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	//normals
+	glCreateBuffers(1, &vboNormalsPlane);
+	glBindBuffer(GL_ARRAY_BUFFER, vboNormalsPlane);
+	glNamedBufferStorage(vboNormalsPlane, normalsPlane.size() * sizeof(normal), normalsPlane.data(), 0);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
+
+	glEnableVertexAttribArray(2);//antes de renderizar
+
+	//texcoord
+	glCreateBuffers(1, &vboTexCoordsPlane);
+	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoordsPlane);
+	glNamedBufferStorage(vboTexCoordsPlane, texcoordPlane.size() * sizeof(glm::vec2), texcoordPlane.data(), 0);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+
+	glEnableVertexAttribArray(3);
+
+	glGenBuffers(1, &eboPlane);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
+}
+void setObjectTexture(unsigned width, unsigned height, std::vector<unsigned char> image) {
+	//texture
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//filter
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//Tiling
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+}
+void setFrameBuffer() {
+	//framebuffer
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+
+	//renderedTexture
+	glGenTextures(1, &renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//depth buffer
+	GLuint depthBuffer{};
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texWidth, texHeight);
+
+	//configure framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+
+	//if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER != GL_FRAMEBUFFER_COMPLETE)) {
+	//	return false;
+	//}
+}
+void setCubemapConfig() {
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
+	}
+
+	//cube filter parameters
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+}
+
 int main(int argc, char** argv) {
 
 	glutInit(&argc, argv);
@@ -628,114 +755,9 @@ int main(int argc, char** argv) {
 	
 	transform = glm::translate(glm::mat4(1.0f), translation);
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	
-	//positions
-	glCreateBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glNamedBufferStorage(vbo, objectVertices.size() * sizeof(vertex), objectVertices.data(), 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, x));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, r));
-	
-	glEnableVertexAttribArray(0);//antes de renderizar
-	glEnableVertexAttribArray(1);//antes de renderizar
-
-	//normals
-	glCreateBuffers(1, &vboNormals);
-	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	glNamedBufferStorage(vboNormals, objectNormals.size() * sizeof(normal), objectNormals.data(), 0);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
-	
-	glEnableVertexAttribArray(2);//antes de renderizar
-
-	//texcoord
-	glCreateBuffers(1, &vboTexCoords);
-	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
-	glNamedBufferStorage(vboTexCoords, objectTexCoords.size() * sizeof(glm::vec2), objectTexCoords.data(), 0);
-	glVertexAttribPointer(3, 2, GL_FLOAT,GL_FALSE, sizeof(glm::vec2), 0);
-
-	glEnableVertexAttribArray(3);
-
-	glGenVertexArrays(1, &vaoPlane);
-	glBindVertexArray(vaoPlane);
-
-	//indices
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
-
-	//positions
-	glCreateBuffers(1, &vboPlane);
-	glBindBuffer(GL_ARRAY_BUFFER, vboPlane);
-	glNamedBufferStorage(vboPlane, 4 * sizeof(vertex), vertices.data(), 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	//normals
-	glCreateBuffers(1, &vboNormalsPlane);
-	glBindBuffer(GL_ARRAY_BUFFER, vboNormalsPlane);
-	glNamedBufferStorage(vboNormalsPlane, normalsPlane.size() * sizeof(normal), normalsPlane.data(), 0);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
-
-	glEnableVertexAttribArray(2);//antes de renderizar
-
-	//texcoord
-	glCreateBuffers(1, &vboTexCoordsPlane);
-	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoordsPlane);
-	glNamedBufferStorage(vboTexCoordsPlane, texcoordPlane.size() * sizeof(glm::vec2), texcoordPlane.data(), 0);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
-
-	glEnableVertexAttribArray(3);
-
-	glGenBuffers(1, &eboPlane);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
-
-
-	//texture
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-	
-	//filter
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//Tiling
-	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-	//framebuffer
-	glGenFramebuffers(1, &frameBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
-
-	//renderedTexture
-	glGenTextures(1, &renderedTexture);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//depth buffer
-	GLuint depthBuffer{};
-	glGenRenderbuffers(1, &depthBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texWidth, texHeight);
-
-	//configure framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
-	GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0}; 
-
-	//if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER != GL_FRAMEBUFFER_COMPLETE)) {
-	//	return false;
-	//}
+	setObject();
+	setPlane();
+	setFrameBuffer();
 
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
@@ -751,21 +773,13 @@ int main(int argc, char** argv) {
 	program.Link();
 
 	glUseProgram(program.GetID());
+	setObjectTexture(width, height, image);
+
 
 	glGenTextures(1, &texCubeID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
 
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
-	}
-
-	//cube filter parameters
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	setCubemapConfig();
 
 
 	GLint sampler{};
@@ -806,8 +820,6 @@ int main(int argc, char** argv) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glEnableVertexAttribArray(0);
-
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
 
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
