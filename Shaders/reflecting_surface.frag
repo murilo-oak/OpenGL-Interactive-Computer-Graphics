@@ -29,5 +29,5 @@ void main() {
 	float difuse = difuseLight(normalN, lightD);
 
 	vec3 I = normalize((invMv4 * vec4(normalize(camDir),1)).xyz);
-	ocolor = texture(skybox, -reflect(I, normalObject));
+	ocolor = 0.5 * texture(skybox, -reflect(I, normalObject)) + (difuse +0.1f+ ceil(difuse) * pow(specular, 2000));;
 }

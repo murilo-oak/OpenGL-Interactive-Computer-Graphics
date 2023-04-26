@@ -406,7 +406,7 @@ int main(int argc, char** argv) {
 	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-	glutCreateWindow("OpenGL - Maxwell, the Cat");
+	glutCreateWindow("OpenGL - Maxwell, the reflective Cat");
 
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
@@ -431,10 +431,10 @@ int main(int argc, char** argv) {
 	unsigned width{}, height{};
 	lodepng::State state; //optionally customize this one
 
-	std::cout<< "Materials: " << mesh.NM() << "\n";
+	std::cout<< "Materials: " << mesh.NM() << std::endl;
 
 	if (mesh.NM() > 0) {
-		std::cout << "MAP: " << mesh.M(0).map_Kd << "\n";
+		std::cout << "MAP: " << mesh.M(0).map_Kd << std::endl;
 		unsigned error = lodepng::load_file(png, std::string(mesh.M(0).map_Kd).c_str());
 		if (!error) error = lodepng::decode(image, width, height, state, png);
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
@@ -587,7 +587,7 @@ int main(int argc, char** argv) {
 
 	for (int f = 0; f < mesh.NF(); f++) {
 		for (int k = 0; k < 3; k++) {
-			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.GetMaterialFirstFace(f) << " \n";
+			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.GetMaterialFirstFace(f) << std::endl;
 			for (int j = 0; j < nf; j++) {
 				if (mesh.F(j).v[k] == texIndex) {
 					texIndex++;
