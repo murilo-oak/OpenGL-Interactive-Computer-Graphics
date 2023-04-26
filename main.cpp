@@ -613,7 +613,6 @@ int main(int argc, char** argv) {
 	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
 	std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 
-	//projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 200000.0f);
 	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.5f, 100.0f);
 	
 	updateCameraPos();
@@ -672,8 +671,8 @@ int main(int argc, char** argv) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
 
-	glEnableVertexAttribArray(0);//antes de renderizar
-	glEnableVertexAttribArray(1);//antes de renderizar
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	//normals
 	glCreateBuffers(1, &vboNormalsPlane);
@@ -696,8 +695,6 @@ int main(int argc, char** argv) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
 
 
-	glEnableVertexAttribArray(3);
-
 	//texture
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
@@ -710,8 +707,6 @@ int main(int argc, char** argv) {
 
 	//Tiling
 	glTexParameteri(GL_TEXTURE_2D,	GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	//vertex and fragment shader compilation
 
 	//framebuffer
 	glGenFramebuffers(1, &frameBuffer);
@@ -741,8 +736,6 @@ int main(int argc, char** argv) {
 	//	return false;
 	//}
 
-
-
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
@@ -756,8 +749,7 @@ int main(int argc, char** argv) {
 	program.AttachShader(vertexS);
 	program.Link();
 
-	shaderProgram = program.GetID();
-	glUseProgram(shaderProgram);
+	glUseProgram(program.GetID());
 
 	glGenTextures(1, &texCubeID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
