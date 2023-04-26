@@ -165,10 +165,9 @@ glm::mat4 invMv4{};
 glm::vec3 translation(0.0f, 0.0f, 0.0f);
 glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
 
-std::vector<vertex> teapot{};
-std::vector<normal> normals{};
-std::vector<glm::vec2> texCoords{};
-std::vector<glm::vec2> texCoords2{};
+std::vector<vertex> objectVertices{};
+std::vector<normal> objectNormals{};
+std::vector<glm::vec2> objectTexCoords{};
 
 cy::GLSLProgram program;
 cy::GLSLProgram skyboxProgram;
@@ -393,7 +392,7 @@ void myDisplayTeapot(){
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
 
 
-	//glDrawArrays(GL_POINTS, 0, teapot.size());
+	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
 	glutSwapBuffers();
 }
 
@@ -435,7 +434,9 @@ int main(int argc, char** argv) {
 
 	if (mesh.NM() > 0) {
 		std::cout << "MAP: " << mesh.M(0).map_Kd << std::endl;
+		
 		unsigned error = lodepng::load_file(png, std::string(mesh.M(0).map_Kd).c_str());
+		
 		if (!error) error = lodepng::decode(image, width, height, state, png);
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 	}
@@ -443,7 +444,7 @@ int main(int argc, char** argv) {
 	//vector of vertices
 	int n = mesh.NV();
 	for (int i = 0; i < n; i++) {
-		teapot.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f});
+		objectVertices.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f});
 	}
 
 	int nf = mesh.NF();
@@ -495,9 +496,9 @@ int main(int argc, char** argv) {
 			
 			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf](vertexIndices x) {
 				
-				int tSize = teapot.size();
+				int tSize = objectVertices.size();
 				//adiciona vertice
-				teapot.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+				objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
 				
 				//atualiza os indices dos vértices duplicados
 				for (int f = 0; f < nf; f++) {
@@ -561,9 +562,9 @@ int main(int argc, char** argv) {
 			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
 			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf](vertexIndices x) {
 				
-				int tSize = teapot.size();
+				int tSize = objectVertices.size();
 				//adiciona vertice
-				teapot.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+				objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
 				//normals.push_back({ mesh.VN(x.normal).x, mesh.VN(x.normal).y, mesh.VN(x.normal).z});
 
 
@@ -582,7 +583,7 @@ int main(int argc, char** argv) {
 		list.clear();
 	}
 			
-	int nTex = teapot.size();
+	int nTex = objectVertices.size();
 	int texIndex{};
 
 	for (int f = 0; f < mesh.NF(); f++) {
@@ -591,8 +592,8 @@ int main(int argc, char** argv) {
 			for (int j = 0; j < nf; j++) {
 				if (mesh.F(j).v[k] == texIndex) {
 					texIndex++;
-					texCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
-					normals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
+					objectTexCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
+					objectNormals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
 					//continue;
 				}
 			}
@@ -605,9 +606,9 @@ int main(int argc, char** argv) {
 		facesIndex.push_back({ mesh.F(i).v[2] });
 	}
 
-	std::cout << teapot.size() << "  <- Vertices" << std::endl;
-	std::cout << normals.size() << "  <- Normals" << std::endl;
-	std::cout << texCoords.size() << "  <- Tex" << std::endl;
+	std::cout << objectVertices.size() << "  <- Vertices" << std::endl;
+	std::cout << objectNormals.size() << "  <- Normals" << std::endl;
+	std::cout << objectTexCoords.size() << "  <- Tex" << std::endl;
 	std::cout << mesh.NF() << "  <- Faces" << std::endl;
 	std::cout << mesh.NV() << "  <- Original Vertex number" << std::endl;
 	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
@@ -633,7 +634,7 @@ int main(int argc, char** argv) {
 	//positions
 	glCreateBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glNamedBufferStorage(vbo, teapot.size() * sizeof(vertex), teapot.data(), 0);
+	glNamedBufferStorage(vbo, objectVertices.size() * sizeof(vertex), objectVertices.data(), 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, x));
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*) offsetof(vertex, r));
 	
@@ -643,7 +644,7 @@ int main(int argc, char** argv) {
 	//normals
 	glCreateBuffers(1, &vboNormals);
 	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	glNamedBufferStorage(vboNormals, normals.size() * sizeof(normal), normals.data(), 0);
+	glNamedBufferStorage(vboNormals, objectNormals.size() * sizeof(normal), objectNormals.data(), 0);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
 	
 	glEnableVertexAttribArray(2);//antes de renderizar
@@ -651,7 +652,7 @@ int main(int argc, char** argv) {
 	//texcoord
 	glCreateBuffers(1, &vboTexCoords);
 	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
-	glNamedBufferStorage(vboTexCoords, texCoords.size() * sizeof(glm::vec2), texCoords.data(), 0);
+	glNamedBufferStorage(vboTexCoords, objectTexCoords.size() * sizeof(glm::vec2), objectTexCoords.data(), 0);
 	glVertexAttribPointer(3, 2, GL_FLOAT,GL_FALSE, sizeof(glm::vec2), 0);
 
 	glEnableVertexAttribArray(3);
