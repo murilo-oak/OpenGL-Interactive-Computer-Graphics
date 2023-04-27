@@ -578,7 +578,14 @@ int main(int argc, char** argv) {
 	}
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
-	cube.loadCubeMap();
+	cube.loadImageFilesCubeMap(
+		"cubemap/cubemap_posx.png",
+		"cubemap/cubemap_negx.png",
+		"cubemap/cubemap_posy.png",
+		"cubemap/cubemap_negy.png",
+		"cubemap/cubemap_posz.png",
+		"cubemap/cubemap_negz.png"
+	);
 
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
