@@ -15,7 +15,7 @@ public:
 	std::vector<unsigned char> png[6];
 	std::vector<unsigned char> image[6];
 
-	void loadCubeMap();
+	void loadImageFilesCubeMap(const char* posx, const char* negx, const char* posy, const char* negy, const char* posz, const char* negz);
 };
 
 #endif
