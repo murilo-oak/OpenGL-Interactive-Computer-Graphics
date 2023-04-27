@@ -10,7 +10,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "lodepng/lodepng.h"
-#include "cubemap/Cubemap.h"
+#include "src/Cubemap.h"
 
 float timeD;
 GLuint vao{};
@@ -435,6 +435,37 @@ void setObject(){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, facesIndex.size() * sizeof(unsigned int), facesIndex.data(), GL_STATIC_DRAW);
 }
+
+void setFrameBuffer() {
+	//framebuffer
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+
+	//renderedTexture
+	glGenTextures(1, &renderedTexture);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//depth buffer
+	GLuint depthBuffer{};
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texWidth, texHeight);
+
+	//configure framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+
+	//if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER != GL_FRAMEBUFFER_COMPLETE)) {
+	//	return false;
+	//}
+}
+
 void setPlane() {
 	//positions
 	glCreateBuffers(1, &vboPlane);
@@ -465,6 +496,8 @@ void setPlane() {
 	glGenBuffers(1, &eboPlane);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
+
+	setFrameBuffer();
 }
 void setObjectTexture(unsigned width, unsigned height, std::vector<unsigned char> image) {
 	//texture
@@ -480,36 +513,11 @@ void setObjectTexture(unsigned width, unsigned height, std::vector<unsigned char
 	//Tiling
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 }
-void setFrameBuffer() {
-	//framebuffer
-	glGenFramebuffers(1, &frameBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 
-	//renderedTexture
-	glGenTextures(1, &renderedTexture);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//depth buffer
-	GLuint depthBuffer{};
-	glGenRenderbuffers(1, &depthBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texWidth, texHeight);
-
-	//configure framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
-	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-
-	//if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER != GL_FRAMEBUFFER_COMPLETE)) {
-	//	return false;
-	//}
-}
 void setCubemapConfig() {
+	glGenTextures(1, &texCubeID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
+
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
@@ -521,6 +529,29 @@ void setCubemapConfig() {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+}
+void setUniformVariables(GLuint programID) {
+	GLint sampler{};
+	sampler = glGetUniformLocation(program.GetID(), "skybox");
+	glUniform1i(sampler, 0);
+
+	sampler = glGetUniformLocation(program.GetID(), "tex");
+	glUniform1i(sampler, 0);
+
+	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+
+	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
+	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
 }
 
 int main(int argc, char** argv) {
@@ -757,7 +788,6 @@ int main(int argc, char** argv) {
 
 	setObject();
 	setPlane();
-	setFrameBuffer();
 
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
@@ -767,47 +797,15 @@ int main(int argc, char** argv) {
 	//fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
 	
 	program.CreateProgram();
-
 	program.AttachShader(fragmentS);
 	program.AttachShader(vertexS);
 	program.Link();
 
 	glUseProgram(program.GetID());
 	setObjectTexture(width, height, image);
-
-
-	glGenTextures(1, &texCubeID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
-
 	setCubemapConfig();
 
-
-	GLint sampler{};
-	sampler = glGetUniformLocation(program.GetID(), "skybox");
-	glUniform1i(sampler, 0);
-	
-	sampler = glGetUniformLocation(program.GetID(), "tex");
-	glUniform1i(sampler, 0);
-
-	//Uniform variable initialization
-	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
-
-	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
-
-	uniformLocmv4 = glGetUniformLocation(program.GetID(), "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
-
-	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "transform");
-	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
-
-	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
-	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
-
+	setUniformVariables(program.GetID());
 
 	//Cubemap
 	glGenVertexArrays(1, &vaoCube);
@@ -825,23 +823,18 @@ int main(int argc, char** argv) {
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
 
-
 	skyboxProgram.CreateProgram();
-
 	skyboxProgram.AttachShader(fragmentS);
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-
 	glUseProgram(skyboxProgram.GetID());
-
-	sampler = glGetUniformLocation(skyboxProgram.GetID(), "skybox");
-	glUniform1i(sampler, 0);
-
-
 	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
 	mv = viewCube;
 	mvp = projection * viewCube;
+
+	GLuint sampler = glGetUniformLocation(skyboxProgram.GetID(), "skybox");
+	glUniform1i(sampler, 0);
 
 	//Uniform variable initialization
 	GLint uniformLocS = glGetUniformLocation(skyboxProgram.GetID(), "mvp");

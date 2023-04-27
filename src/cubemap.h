@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <vector>
-#include "D:\OpenglProjects\Projeto 4\Project1\lodepng\lodepng.h"
+#include "..\lodepng.h"
 
 class Cubemap
 {
