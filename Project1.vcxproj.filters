@@ -21,7 +21,7 @@
     <ClCompile Include="lodepng\lodepng.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="cubemap\Cubemap.cpp">
+    <ClCompile Include="src\cubemap.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,7 +41,7 @@
     <ClInclude Include="lodepng\lodepng.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cubemap\Cubemap.h">
+    <ClInclude Include="src\cubemap.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
   </ItemGroup>

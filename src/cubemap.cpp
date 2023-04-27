@@ -1,4 +1,4 @@
-#include "Cubemap.h"
+#include "cubemap.h"
 
 void Cubemap::loadCubeMap() {
 		//face positive x
@@ -6,7 +6,7 @@ void Cubemap::loadCubeMap() {
 		if (!error) error = lodepng::decode(image[0], width, height, state[0], png[0]);
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 
-		////face negative x
+		//face negative x
 		error = lodepng::load_file(png[1], "cubemap/cubemap_negx.png");
 		if (!error) error = lodepng::decode(image[1], width, height, state[1], png[1]);
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
@@ -28,7 +28,7 @@ void Cubemap::loadCubeMap() {
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 
 
-		////face negative z
+		//face negative z
 		error = lodepng::load_file(png[5], "cubemap/cubemap_negz.png");
 		if (!error) error = lodepng::decode(image[5], width, height, state[5], png[5]);
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
