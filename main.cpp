@@ -213,11 +213,13 @@ void updateMouse(int x, int y) {
 }
 
 void setUniformVariables(GLuint programID) {
+	glUseProgram(programID);
+
 	GLint sampler{};
-	sampler = glGetUniformLocation(program.GetID(), "skybox");
+	sampler = glGetUniformLocation(programID, "skybox");
 	glUniform1i(sampler, 0);
 
-	sampler = glGetUniformLocation(program.GetID(), "tex");
+	sampler = glGetUniformLocation(programID, "tex");
 	glUniform1i(sampler, 0);
 
 	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
@@ -798,10 +800,9 @@ int main(int argc, char** argv) {
 	program.AttachShader(vertexS);
 	program.Link();
 
-	glUseProgram(program.GetID());
+	//glUseProgram(program.GetID());
 	setObjectTexture(width, height, image);
 	setCubemapConfig();
-
 	setUniformVariables(program.GetID());
 
 	//Cubemap
@@ -825,37 +826,11 @@ int main(int argc, char** argv) {
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-	glUseProgram(skyboxProgram.GetID());
 	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
 	mv = viewCube;
 	mvp = projection * viewCube;
 
-	GLuint sampler = glGetUniformLocation(skyboxProgram.GetID(), "skybox");
-	glUniform1i(sampler, 0);
-
-	//Uniform variable initialization
-	GLint uniformLocS = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLocS, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	GLint uniformLocmvS = glGetUniformLocation(skyboxProgram.GetID(), "mv3");
-	glUniformMatrix3fv(uniformLocmvS, 1, GL_FALSE, glm::value_ptr(mv));
-
-	GLint uniformLocmv4S = glGetUniformLocation(skyboxProgram.GetID(), "mv4");
-	glUniformMatrix4fv(uniformLocmv4S, 1, GL_FALSE, glm::value_ptr(mv4));
-
-	GLint uniformTransLocS = glGetUniformLocation(skyboxProgram.GetID(), "tranform");
-	glUniformMatrix4fv(uniformTransLocS, 1, GL_FALSE, glm::value_ptr(transformCamera));
-
-	GLint uniformLightDirS = glGetUniformLocation(skyboxProgram.GetID(), "lightDir");
-	glUniform3fv(uniformLightDirS, 1, &lightDir[0]);
-
-
-	if (uniformLocS != -1) {
-		std::cout << "certo";
-	}
-	else {
-		std::cout << "o uniform não foi encontrado no programa shader";
-	}
+	setUniformVariables(skyboxProgram.GetID());
 
 	glutDisplayFunc(myDisplayTeapot);
 	glutMainLoop();
