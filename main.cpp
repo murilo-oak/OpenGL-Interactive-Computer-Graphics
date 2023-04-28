@@ -266,6 +266,12 @@ void updateUniformVariables(GLuint programID) {
 	updateLightCamUniforms(programID);
 }
 
+void updateSkyboxMatrix() {
+	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
+	mv = viewCube;
+	mvp = projection * viewCube;
+}
+
 void onLeftButton(int x, int y) {
 	camRadius += ((y - preMouseY) / 40.0f);
 	updateCameraPos();
@@ -280,8 +286,7 @@ void onLeftButton(int x, int y) {
 
 	updateUniformVariables(program.GetID());
 	
-	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
-	mvp = projection * viewCube;
+	updateSkyboxMatrix();
 	updateUniformVariables(skyboxProgram.GetID());
 
 	glutPostRedisplay();
@@ -318,9 +323,7 @@ void onRightButton(int x, int y) {
 
 	updateUniformVariables(program.GetID());
 
-	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
-	mvp = projection * viewCube;
-
+	updateSkyboxMatrix();
 	updateUniformVariables(skyboxProgram.GetID());
 
 	glutPostRedisplay();
@@ -821,10 +824,7 @@ int main(int argc, char** argv) {
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
-	mv = viewCube;
-	mvp = projection * viewCube;
-
+	updateSkyboxMatrix();
 	setUniformVariables(skyboxProgram.GetID());
 
 	glutDisplayFunc(myDisplayTeapot);
