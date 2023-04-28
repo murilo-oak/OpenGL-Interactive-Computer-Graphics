@@ -211,6 +211,62 @@ void updateMouse(int x, int y) {
 	preMouseY = y;
 
 }
+
+void setUniformVariables(GLuint programID) {
+	GLint sampler{};
+	sampler = glGetUniformLocation(program.GetID(), "skybox");
+	glUniform1i(sampler, 0);
+
+	sampler = glGetUniformLocation(program.GetID(), "tex");
+	glUniform1i(sampler, 0);
+
+	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+
+	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
+	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
+
+	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
+	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+}
+
+void updateLightCamUniforms(GLuint programID) {
+	glUseProgram(programID);
+
+	GLint uniformTransLoc = glGetUniformLocation(programID, "cameraPos");
+	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
+
+	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
+	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+}
+
+void updateUniformVariables(GLuint programID) {
+	glUseProgram(programID);
+
+	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+
+	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+
+	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+
+	updateLightCamUniforms(programID);
+}
+
 void onLeftButton(int x, int y) {
 	camRadius += ((y - preMouseY) / 40.0f);
 	updateCameraPos();
@@ -223,58 +279,31 @@ void onLeftButton(int x, int y) {
 	invMv4 = glm::inverse(mv4);
 	mv = glm::transpose(invMv4);
 
-	glUseProgram(program.GetID());
-
-	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
-
-	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
-
-	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
-
-	uniformLocmv4 = glGetUniformLocation(program.GetID(), "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
-
-	glUseProgram(skyboxProgram.GetID());
-
+	updateUniformVariables(program.GetID());
+	
 	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
 	mvp = projection * viewCube;
+	updateUniformVariables(skyboxProgram.GetID());
 
-	uniformLoc = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	uniformLocmv = glGetUniformLocation(skyboxProgram.GetID(), "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
-
-	uniformLocmv4 = glGetUniformLocation(skyboxProgram.GetID(), "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
 	glutPostRedisplay();
 
 	updateMouse(x, y);
 }
+
 
 void onLeftButton2(int x, int y) {
 	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), (x - preMouseX) / 40.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), (y - preMouseY) / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 	glm::vec4 newLightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
-
 	lightDir = newLightDir;
-
-	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
-
-	GLint uniformLightDir = glGetUniformLocation(program.GetID(), "lightDir");
-	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+	
+	updateLightCamUniforms(program.GetID());
 
 	glutPostRedisplay();
 
 	updateMouse(x, y);
 }
+
 void onRightButton(int x, int y) {
 	angleY += (y - preMouseY) / 400.0f;
 	angleX += (x - preMouseX) / 400.0f;
@@ -288,32 +317,12 @@ void onRightButton(int x, int y) {
 	invMv4 = glm::inverse(mv4);
 	mv = glm::transpose(invMv4);
 
-
-	glUseProgram(program.GetID());
-
-	GLint uniformLoc = glGetUniformLocation(program.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	GLint uniformLocmv = glGetUniformLocation(program.GetID(), "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
-
-	GLint uniformLocmv4 = glGetUniformLocation(program.GetID(), "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
-
-	uniformLocmv4 = glGetUniformLocation(program.GetID(), "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
-
-	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
-
-	glUseProgram(skyboxProgram.GetID());
+	updateUniformVariables(program.GetID());
 
 	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
 	mvp = projection * viewCube;
 
-	uniformLoc = glGetUniformLocation(skyboxProgram.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
+	updateUniformVariables(skyboxProgram.GetID());
 
 	glutPostRedisplay();
 
@@ -530,28 +539,182 @@ void setCubemapConfig() {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
-void setUniformVariables(GLuint programID) {
-	GLint sampler{};
-	sampler = glGetUniformLocation(program.GetID(), "skybox");
-	glUniform1i(sampler, 0);
 
-	sampler = glGetUniformLocation(program.GetID(), "tex");
-	glUniform1i(sampler, 0);
+void loadObject(cy::TriMesh mesh, std::vector<vertex>& objectVertices, std::vector<normal>& objectNormals, std::vector<glm::vec2>& objectTexCoords) {
 
-	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+	//vector of vertices
+	int n = mesh.NV();
+	for (int i = 0; i < n; i++) {
+		objectVertices.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f });
+	}
 
-	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+	int nf = mesh.NF();
+	int counter{};
+	std::vector<vertexIndices> list{};
+	std::vector<bool> checkVertex(n, false);
 
-	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+	for (int i = 0; i < nf; i++) {
+		for (int k = 0; k < 3; k++) {
 
-	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+			if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
+				continue;
+			}
 
-	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
-	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+			for (int j = i; j < nf; j++) {
+				if (mesh.F(i).v[k] == mesh.F(j).v[k] && (mesh.FN(i).v[k] != mesh.FN(j).v[k])) { //works!
+
+					if (list.empty()) {
+						int vertexI = mesh.F(i).v[k];
+						int normalI = mesh.FN(i).v[k];
+						vertexIndices vertex = { vertexI, normalI };
+						list.push_back(vertex);
+					}
+
+					int vertexI = mesh.F(j).v[k];
+					int normalI = mesh.FN(j).v[k];
+
+					vertexIndices vertex = { vertexI, normalI };
+					auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) {
+						return e.vertex == vertex.vertex && e.normal == vertex.normal;
+						});
+
+					bool notFoundVertex = it == list.end();
+
+					if (notFoundVertex) {
+						list.push_back(vertex);
+					}
+				}
+			}
+
+		}
+		//se achou vértice com normal distinta
+		if (!list.empty()) {
+
+			//atualiza o valor no vetor de vértice que ele ja foi checado
+			checkVertex[list[0].vertex] = true;
+
+			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
+
+			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf, &objectVertices](vertexIndices x) {
+
+				int tSize = objectVertices.size();
+				//adiciona vertice
+				objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+
+				//atualiza os indices dos vértices duplicados
+				for (int f = 0; f < nf; f++) {
+					for (int k = 0; k < 3; k++) {
+						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k]) {
+							mesh.F(f).v[k] = tSize;
+						}
+					}
+				}
+				});
+
+			list.clear();
+		}
+
+	}
+
+	int nNormals = mesh.NVN();
+	int normalIndex{};
+
+	for (int i = 0; i < nf; i++) {
+		for (int k = 0; k < 3; k++) {
+
+			if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
+				continue;
+			}
+
+			for (int j = i; j < nf; j++) {
+				if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FT(i).v[k] != mesh.FT(j).v[k]) { //works!
+					if (list.empty()) {
+						int vertexI = mesh.F(i).v[k];
+						int normalI = mesh.FN(i).v[k];
+						int texI = mesh.FT(i).v[k];
+						vertexIndices vertex = { vertexI, normalI, texI };
+						list.push_back(vertex);
+					}
+
+					int vertexI = mesh.F(j).v[k];
+					int normalI = mesh.FN(j).v[k];
+					int texI = mesh.FT(i).v[k];
+
+					vertexIndices vertex = { vertexI, normalI, texI };
+					auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) {
+						return e.vertex == vertex.vertex && e.normal == vertex.normal && e.texCoord == vertex.texCoord;
+						});
+
+					bool notFoundVertex = it == list.end();
+
+					if (notFoundVertex) {
+						list.push_back(vertex);
+					}
+				}
+			}
+
+		}
+		//se achou vértice com normal distinta
+		if (list.size() > 0) {
+
+			//atualiza o valor no vetor de vértice que ele ja foi checado
+			checkVertex[list[0].vertex] = true;
+
+			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
+			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf, &objectVertices](vertexIndices x) {
+
+				int tSize = objectVertices.size();
+				//adiciona vertice
+				objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+				//normals.push_back({ mesh.VN(x.normal).x, mesh.VN(x.normal).y, mesh.VN(x.normal).z});
+
+
+				for (int f = 0; f < nf; f++) {
+					for (int k = 0; k < 3; k++) {
+						//mesh.VN(mesh.FN(f).v[k]).x
+						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
+							mesh.F(f).v[k] = tSize;
+							mesh.FN(f).v[k] = x.normal;
+						}
+					}
+				}
+				});
+		}
+
+		list.clear();
+	}
+
+	int nTex = objectVertices.size();
+	int texIndex{};
+
+	for (int f = 0; f < mesh.NF(); f++) {
+		for (int k = 0; k < 3; k++) {
+			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.GetMaterialFirstFace(f) << std::endl;
+			for (int j = 0; j < nf; j++) {
+				if (mesh.F(j).v[k] == texIndex) {
+					texIndex++;
+					objectTexCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
+					objectNormals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
+					//continue;
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < nf; i++) {
+		facesIndex.push_back({ mesh.F(i).v[0] });
+		facesIndex.push_back({ mesh.F(i).v[1] });
+		facesIndex.push_back({ mesh.F(i).v[2] });
+	}
+
+	std::cout << objectVertices.size() << "  <- Vertices" << std::endl;
+	std::cout << objectNormals.size() << "  <- Normals" << std::endl;
+	std::cout << objectTexCoords.size() << "  <- Tex" << std::endl;
+
+	std::cout << mesh.NF() << "  <- Faces" << std::endl;
+	std::cout << mesh.NV() << "  <- Original Vertex number" << std::endl;
+	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
+	std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -586,7 +749,6 @@ int main(int argc, char** argv) {
 		"cubemap/cubemap_posz.png",
 		"cubemap/cubemap_negz.png"
 	);
-
 	cy::TriMesh mesh;
 	mesh.LoadFromFileObj("teapot.obj");
 
@@ -606,179 +768,6 @@ int main(int argc, char** argv) {
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 	}
 
-	//vector of vertices
-	int n = mesh.NV();
-	for (int i = 0; i < n; i++) {
-		objectVertices.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f});
-	}
-
-	int nf = mesh.NF();
-	int counter{};
-	std::vector<vertexIndices> list{};
-	std::vector<bool> checkVertex(n, false);
-	
-	for (int i = 0; i < nf; i++) {
-		for (int k = 0; k < 3; k++) {
-			
-			if (mesh.F(i).v[k]>= n || checkVertex[mesh.F(i).v[k]]) {
-				continue;
-			}
-	
-			for (int j = i; j < nf; j++) {
-				if (mesh.F(i).v[k] == mesh.F(j).v[k] && (mesh.FN(i).v[k] != mesh.FN(j).v[k])) { //works!
-					
-					if (list.empty()) {
-						int vertexI = mesh.F(i).v[k];
-						int normalI = mesh.FN(i).v[k];
-						vertexIndices vertex = { vertexI, normalI };
-						list.push_back(vertex);
-					}
-					
-					int vertexI = mesh.F(j).v[k];
-					int normalI = mesh.FN(j).v[k];
-					
-					vertexIndices vertex = { vertexI, normalI };
-					auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) { 
-						return e.vertex == vertex.vertex && e.normal == vertex.normal; 
-					});
-					
-					bool notFoundVertex = it == list.end();
-					
-					if (notFoundVertex) {
-						list.push_back(vertex);
-					}
-				}
-			}
-			
-		}
-		//se achou vértice com normal distinta
-		if (!list.empty()) {
-			
-			//atualiza o valor no vetor de vértice que ele ja foi checado
-			checkVertex[list[0].vertex] = true;
-			
-			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
-			
-			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf](vertexIndices x) {
-				
-				int tSize = objectVertices.size();
-				//adiciona vertice
-				objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
-				
-				//atualiza os indices dos vértices duplicados
-				for (int f = 0; f < nf; f++) {
-					for (int k = 0; k < 3; k++) {
-						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k]) {
-							mesh.F(f).v[k] = tSize;
-						}
-					}
-				}
-			});
-
-			list.clear();
-		}
-		
-	}
-
-	int nNormals = mesh.NVN();
-	int normalIndex{};
-
-	for (int i = 0; i < nf; i++) {
-		for (int k = 0; k < 3; k++) {
-
-			if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
-				continue;
-			}
-
-			for (int j = i; j < nf; j++) {
-				if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FT(i).v[k] != mesh.FT(j).v[k]) { //works!
-					if (list.empty()) {
-						int vertexI = mesh.F(i).v[k];
-						int normalI = mesh.FN(i).v[k];
-						int texI = mesh.FT(i).v[k];
-						vertexIndices vertex = { vertexI, normalI, texI };
-						list.push_back(vertex);
-					}
-
-					int vertexI = mesh.F(j).v[k];
-					int normalI = mesh.FN(j).v[k];
-					int texI = mesh.FT(i).v[k];
-					
-					vertexIndices vertex = { vertexI, normalI, texI };
-					auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) {
-						return e.vertex == vertex.vertex && e.normal == vertex.normal && e.texCoord == vertex.texCoord;
-						});
-
-					bool notFoundVertex = it == list.end();
-
-					if (notFoundVertex) {
-						list.push_back(vertex);
-					}
-				}
-			}
-
-		}
-		//se achou vértice com normal distinta
-		if (list.size() > 0) {
-
-			//atualiza o valor no vetor de vértice que ele ja foi checado
-			checkVertex[list[0].vertex] = true;
-
-			//adiciona ao vbo de vértices no final o vértices que precisa duplicar
-			std::for_each(list.begin() + 1, list.end(), [&mesh, &nf](vertexIndices x) {
-				
-				int tSize = objectVertices.size();
-				//adiciona vertice
-				objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
-				//normals.push_back({ mesh.VN(x.normal).x, mesh.VN(x.normal).y, mesh.VN(x.normal).z});
-
-
-				for (int f = 0; f < nf; f++) {
-					for (int k = 0; k < 3; k++) {
-						//mesh.VN(mesh.FN(f).v[k]).x
-						if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
-							mesh.F(f).v[k] = tSize;
-							mesh.FN(f).v[k] = x.normal;
-						}
-					}
-				}
-				});
-		}
-
-		list.clear();
-	}
-			
-	int nTex = objectVertices.size();
-	int texIndex{};
-
-	for (int f = 0; f < mesh.NF(); f++) {
-		for (int k = 0; k < 3; k++) {
-			//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.GetMaterialFirstFace(f) << std::endl;
-			for (int j = 0; j < nf; j++) {
-				if (mesh.F(j).v[k] == texIndex) {
-					texIndex++;
-					objectTexCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
-					objectNormals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
-					//continue;
-				}
-			}
-		}
-	}
-
-	for (int i = 0; i < nf; i++) {
-		facesIndex.push_back({ mesh.F(i).v[0] });
-		facesIndex.push_back({ mesh.F(i).v[1] });
-		facesIndex.push_back({ mesh.F(i).v[2] });
-	}
-
-	std::cout << objectVertices.size() << "  <- Vertices" << std::endl;
-	std::cout << objectNormals.size() << "  <- Normals" << std::endl;
-	std::cout << objectTexCoords.size() << "  <- Tex" << std::endl;
-	std::cout << mesh.NF() << "  <- Faces" << std::endl;
-	std::cout << mesh.NV() << "  <- Original Vertex number" << std::endl;
-	std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
-	std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
-
 	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.5f, 100.0f);
 	
 	updateCameraPos();
@@ -793,6 +782,7 @@ int main(int argc, char** argv) {
 	
 	transform = glm::translate(glm::mat4(1.0f), translation);
 
+	loadObject(mesh, objectVertices, objectNormals, objectTexCoords);
 	setObject();
 	setPlane();
 
