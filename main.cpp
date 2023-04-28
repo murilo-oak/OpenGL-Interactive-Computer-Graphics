@@ -147,7 +147,6 @@ float skyboxVertices[] = {
 glm::mat4 rotX = glm::mat4(1.0f);
 glm::mat4 rotY = glm::mat4(1.0f);
 
-glm::mat4 transformCamera;
 glm::mat4 projection;
 glm::mat4 view;
 
@@ -156,7 +155,6 @@ glm::mat4 viewCube;
 
 glm::mat4 model;
 glm::mat4 mvp;
-glm::mat4 transform;
 
 glm::mat3 mv{};
 glm::mat4 mv4{};
@@ -209,7 +207,6 @@ void myKeyboard(unsigned char key, int x, int y) {
 void updateMouse(int x, int y) {
 	preMouseX = x;
 	preMouseY = y;
-
 }
 
 void setUniformVariables(GLuint programID) {
@@ -275,8 +272,8 @@ void onLeftButton(int x, int y) {
 	updateViewMat();
 
 
-	mvp = projection * model * rotX * rotY * transform * view;
-	mv4 = model * rotX * rotY * transform * view;
+	mvp = projection * model * rotX * rotY * view;
+	mv4 = model * rotX * rotY * view;
 
 	invMv4 = glm::inverse(mv4);
 	mv = glm::transpose(invMv4);
@@ -314,7 +311,7 @@ void onRightButton(int x, int y) {
 	updateViewMat();
 	
 	mvp = projection * model * rotX * rotY * view;
-	mv4 = model * rotX * rotY * transform * view;
+	mv4 = model * rotX * rotY * view;
 
 	invMv4 = glm::inverse(mv4);
 	mv = glm::transpose(invMv4);
@@ -781,8 +778,6 @@ int main(int argc, char** argv) {
 	mv4 = model * view;
 	invMv4 = glm::inverse(mv4);
 	mv = glm::transpose(invMv4);
-	
-	transform = glm::translate(glm::mat4(1.0f), translation);
 
 	loadObject(mesh, objectVertices, objectNormals, objectTexCoords);
 	setObject();
