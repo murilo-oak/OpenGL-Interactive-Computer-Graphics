@@ -160,7 +160,6 @@ glm::mat3 mv{};
 glm::mat4 mv4{};
 glm::mat4 invMv4{};
 
-glm::vec3 translation(0.0f, 0.0f, 0.0f);
 glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
 
 std::vector<vertex> objectVertices{};
@@ -180,14 +179,6 @@ void updateCameraPos() {
 		camRadius * sin(angleY) * sin(angleX), 
 		camRadius * cos(angleY), 
 		camRadius * sin(angleY) * cos(angleX)
-	);
-}
-
-void updateViewMat() {
-	view = glm::lookAt(
-		camPos,
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 }
 
@@ -266,6 +257,37 @@ void updateUniformVariables(GLuint programID) {
 	updateLightCamUniforms(programID);
 }
 
+void setViewCamMat() {
+	view = glm::lookAt(
+		camPos,
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	);
+}
+void setProjectionMat() {
+	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight / (GLfloat)windowWidth, 0.5f, 100.0f);
+}
+
+void setModelMat() {
+	model = glm::mat4(1.0f);
+};
+
+void updateMVP() {
+	mvp = projection * model * view;
+
+	mv4 = model * view;
+	invMv4 = glm::inverse(mv4);
+	mv = glm::transpose(invMv4);
+}
+
+void setMVP() {
+	setProjectionMat();
+	setViewCamMat();
+	setModelMat();
+
+	updateMVP();
+}
+
 void updateSkyboxMatrix() {
 	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
 	mv = viewCube;
@@ -275,14 +297,10 @@ void updateSkyboxMatrix() {
 void onLeftButton(int x, int y) {
 	camRadius += ((y - preMouseY) / 40.0f);
 	updateCameraPos();
-	updateViewMat();
+	setViewCamMat();
 
 
-	mvp = projection * model * rotX * rotY * view;
-	mv4 = model * rotX * rotY * view;
-
-	invMv4 = glm::inverse(mv4);
-	mv = glm::transpose(invMv4);
+	updateMVP();
 
 	updateUniformVariables(program.GetID());
 	
@@ -313,13 +331,9 @@ void onRightButton(int x, int y) {
 	angleX += (x - preMouseX) / 400.0f;
 	
 	updateCameraPos();
-	updateViewMat();
+	setViewCamMat();
 	
-	mvp = projection * model * rotX * rotY * view;
-	mv4 = model * rotX * rotY * view;
-
-	invMv4 = glm::inverse(mv4);
-	mv = glm::transpose(invMv4);
+	updateMVP();
 
 	updateUniformVariables(program.GetID());
 
@@ -743,6 +757,7 @@ int main(int argc, char** argv) {
 	}
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
+	//scene start
 	cube.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
 		"cubemap/cubemap_negx.png",
@@ -769,18 +784,10 @@ int main(int argc, char** argv) {
 		if (!error) error = lodepng::decode(image, width, height, state, png);
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 	}
-
-	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight/ (GLfloat)windowWidth, 0.5f, 100.0f);
 	
 	updateCameraPos();
-	updateViewMat();
-
-	model = glm::mat4(1.0f);
-	mvp = projection * model * view;
-
-	mv4 = model * view;
-	invMv4 = glm::inverse(mv4);
-	mv = glm::transpose(invMv4);
+	setViewCamMat();
+	setMVP();
 
 	loadObject(mesh, objectVertices, objectNormals, objectTexCoords);
 	setObject();
@@ -826,6 +833,7 @@ int main(int argc, char** argv) {
 
 	updateSkyboxMatrix();
 	setUniformVariables(skyboxProgram.GetID());
+	//scene end
 
 	glutDisplayFunc(myDisplayTeapot);
 	glutMainLoop();
