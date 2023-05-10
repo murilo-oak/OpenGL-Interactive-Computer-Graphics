@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 #define GLEW_STATIC
-#include "glew.h"
+#include "GL/glew.h"
 #include <GL/freeglut.h>
 #include "cyCodeBase/cyTriMesh.h"
 #include "cyCodeBase/cyGL.h"
