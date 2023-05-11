@@ -4,11 +4,14 @@
 #define GLEW_STATIC
 #include "GL/glew.h"
 #include <GL/freeglut.h>
+
 #include "cyCodeBase/cyTriMesh.h"
 #include "cyCodeBase/cyGL.h"
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+
 #include "lodepng/lodepng.h"
 
 #include "src/Cubemap.h"
@@ -148,19 +151,6 @@ float skyboxVertices[] = {
 glm::mat4 rotX = glm::mat4(1.0f);
 glm::mat4 rotY = glm::mat4(1.0f);
 
-glm::mat4 projection;
-glm::mat4 view;
-
-glm::mat4 viewCube;
-
-
-glm::mat4 model;
-glm::mat4 mvp;
-
-glm::mat3 mv{};
-glm::mat4 mv4{};
-glm::mat4 invMv4{};
-
 glm::vec3 lightDir(0.0f, 1.0f, 0.0f);
 
 std::vector<vertex> objectVertices{};
@@ -169,8 +159,6 @@ std::vector<glm::vec2> objectTexCoords{};
 
 cy::GLSLProgram program;
 cy::GLSLProgram skyboxProgram;
-
-float camRadius = 3;
 
 Cubemap cube;
 Camera cam;
@@ -202,17 +190,24 @@ void setUniformVariables(GLuint programID) {
 	sampler = glGetUniformLocation(programID, "tex");
 	glUniform1i(sampler, 0);
 
-	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+	if (programID == skyboxProgram.GetID()) {
+		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(cam.m_projection * glm::mat4(glm::mat3(cam.m_view))));
+	}
+
+	if (programID == program.GetID()) {
+		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(cam.m_mvp));
+	}
 
 	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(cam.m_mv));
 
 	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(cam.m_mv4));
 
 	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(cam.m_invMv4));
 
 	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
 	glUniform3fv(uniformTransLoc, 1, &cam.m_position[0]);
@@ -234,68 +229,38 @@ void updateLightCamUniforms(GLuint programID) {
 void updateUniformVariables(GLuint programID) {
 	glUseProgram(programID);
 
-	GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+	if (programID == skyboxProgram.GetID()) {
+		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(cam.m_projection * glm::mat4(glm::mat3(cam.m_view))));
+	}
+
+	if (programID == program.GetID()) {
+		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(cam.m_mvp));
+	}
 
 	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(mv));
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(cam.m_mv));
 
 	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(mv4));
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(cam.m_mv4));
 
 	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(cam.m_invMv4));
 
 	updateLightCamUniforms(programID);
 }
 
-void setViewCamMat() {
-	view = glm::lookAt(
-		cam.m_position,
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
-}
-void setProjectionMat() {
-	projection = glm::perspective(glm::radians(55.0f), (GLfloat)windowHeight / (GLfloat)windowWidth, 0.5f, 100.0f);
-}
-
-void setModelMat() {
-	model = glm::mat4(1.0f);
-};
-
-void updateMVP() {
-	mvp = projection * model * view;
-
-	mv4 = model * view;
-	invMv4 = glm::inverse(mv4);
-	mv = glm::transpose(invMv4);
-}
-
-void setMVP() {
-	setProjectionMat();
-	setViewCamMat();
-	setModelMat();
-
-	updateMVP();
-}
-
-void updateSkyboxMatrix() {
-	glm::mat4 viewCube = glm::mat4(glm::mat3(view));
-	mv = viewCube;
-	mvp = projection * viewCube;
-}
-
 void onLeftButton(int x, int y) {
 	cam.updatePosition(angleX, angleY, ((y - preMouseY) / 40.0f));
-	setViewCamMat();
+	cam.setViewMat();
 
 
-	updateMVP();
+	cam.updateMVP();
 
 	updateUniformVariables(program.GetID());
 	
-	updateSkyboxMatrix();
+
 	updateUniformVariables(skyboxProgram.GetID());
 
 	glutPostRedisplay();
@@ -323,13 +288,11 @@ void onRightButton(int x, int y) {
 	
 	//updateCameraPos();
 	cam.updatePosition(angleX, angleY);
-	setViewCamMat();
+	cam.setViewMat();
 	
-	updateMVP();
+	cam.updateMVP();
 
 	updateUniformVariables(program.GetID());
-
-	updateSkyboxMatrix();
 	updateUniformVariables(skyboxProgram.GetID());
 
 	glutPostRedisplay();
@@ -794,8 +757,7 @@ int main(int argc, char** argv) {
 	}
 	
 	cam.updatePosition(angleX, angleY);
-	setViewCamMat();
-	setMVP();
+	cam.setMVP(windowHeight, windowHeight);
 
 	loadObject(mesh, objectVertices, objectNormals, objectTexCoords);
 	setObject();
@@ -814,7 +776,7 @@ int main(int argc, char** argv) {
 	program.Link();
 
 	//glUseProgram(program.GetID());
-	setObjectTexture(width, height, image);
+	setObjectTexture(windowWidth, windowHeight, image);
 	setCubemapTexConfig();
 	setUniformVariables(program.GetID());
 	setCubemapConfig();
@@ -828,7 +790,6 @@ int main(int argc, char** argv) {
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-	updateSkyboxMatrix();
 	setUniformVariables(skyboxProgram.GetID());
 	//scene end
 
