@@ -10,7 +10,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "lodepng/lodepng.h"
+
 #include "src/Cubemap.h"
+#include "src/camera.h"
 
 GLuint vao{};
 GLuint vaoPlane{};
@@ -169,18 +171,9 @@ cy::GLSLProgram program;
 cy::GLSLProgram skyboxProgram;
 
 float camRadius = 3;
-glm::vec3 camPos{};
 
 Cubemap cube;
-
-void updateCameraPos() {
-	camPos = glm::vec3(
-		camRadius * sin(angleY) * sin(angleX), 
-		camRadius * cos(angleY), 
-		camRadius * sin(angleY) * cos(angleX)
-	);
-}
-
+Camera cam;
 
 void myIdle() {
 	glutPostRedisplay();
@@ -222,7 +215,7 @@ void setUniformVariables(GLuint programID) {
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(invMv4));
 
 	GLint uniformTransLoc = glGetUniformLocation(program.GetID(), "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
+	glUniform3fv(uniformTransLoc, 1, &cam.m_position[0]);
 
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
@@ -232,7 +225,7 @@ void updateLightCamUniforms(GLuint programID) {
 	glUseProgram(programID);
 
 	GLint uniformTransLoc = glGetUniformLocation(programID, "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &camPos[0]);
+	glUniform3fv(uniformTransLoc, 1, &cam.m_position[0]);
 
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
@@ -258,7 +251,7 @@ void updateUniformVariables(GLuint programID) {
 
 void setViewCamMat() {
 	view = glm::lookAt(
-		camPos,
+		cam.m_position,
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
@@ -294,8 +287,7 @@ void updateSkyboxMatrix() {
 }
 
 void onLeftButton(int x, int y) {
-	camRadius += ((y - preMouseY) / 40.0f);
-	updateCameraPos();
+	cam.updatePosition(angleX, angleY, ((y - preMouseY) / 40.0f));
 	setViewCamMat();
 
 
@@ -329,7 +321,8 @@ void onRightButton(int x, int y) {
 	angleY += (y - preMouseY) / 400.0f;
 	angleX += (x - preMouseX) / 400.0f;
 	
-	updateCameraPos();
+	//updateCameraPos();
+	cam.updatePosition(angleX, angleY);
 	setViewCamMat();
 	
 	updateMVP();
@@ -771,6 +764,7 @@ int main(int argc, char** argv) {
 	}
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
+	
 	//scene start
 	cube.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
@@ -799,7 +793,7 @@ int main(int argc, char** argv) {
 		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 	}
 	
-	updateCameraPos();
+	cam.updatePosition(angleX, angleY);
 	setViewCamMat();
 	setMVP();
 
