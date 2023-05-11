@@ -12,7 +12,6 @@
 #include "lodepng/lodepng.h"
 #include "src/Cubemap.h"
 
-float timeD;
 GLuint vao{};
 GLuint vaoPlane{};
 GLuint vaoCube{};
@@ -51,7 +50,7 @@ int preMouseY;
 int windowWidth{500};
 int windowHeight{500};
 
-int texWidth{ 500 }, texHeight{ 500};
+int texWidth{ 500 }, texHeight{ 500 };
 
 float angleX = 0.90f;
 float angleY = 0.90f;
@@ -539,7 +538,7 @@ void setObjectTexture(unsigned width, unsigned height, std::vector<unsigned char
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 }
 
-void setCubemapConfig() {
+void setCubemapTexConfig() {
 	glGenTextures(1, &texCubeID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
 
@@ -555,6 +554,21 @@ void setCubemapConfig() {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
+
+void setCubemapConfig() {
+	//Cubemap
+	glGenVertexArrays(1, &vaoCube);
+	glBindVertexArray(vaoCube);
+
+	//positions
+	glCreateBuffers(1, &vboCube);
+	glBindBuffer(GL_ARRAY_BUFFER, vboCube);
+	glNamedBufferStorage(vboCube, sizeof(skyboxVertices), skyboxVertices, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glEnableVertexAttribArray(0);
+}
+
 
 void loadObject(cy::TriMesh mesh, std::vector<vertex>& objectVertices, std::vector<normal>& objectNormals, std::vector<glm::vec2>& objectTexCoords) {
 
@@ -807,20 +821,9 @@ int main(int argc, char** argv) {
 
 	//glUseProgram(program.GetID());
 	setObjectTexture(width, height, image);
-	setCubemapConfig();
+	setCubemapTexConfig();
 	setUniformVariables(program.GetID());
-
-	//Cubemap
-	glGenVertexArrays(1, &vaoCube);
-	glBindVertexArray(vaoCube);
-
-	//positions
-	glCreateBuffers(1, &vboCube);
-	glBindBuffer(GL_ARRAY_BUFFER, vboCube);
-	glNamedBufferStorage(vboCube,  sizeof(skyboxVertices), skyboxVertices, 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glEnableVertexAttribArray(0);
+	setCubemapConfig();
 
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
