@@ -25,34 +25,52 @@ public:
 		int texCoord;
 	};
 
-	//std::vector<unsigned int> facesIndex{};
+	std::vector<unsigned int> m_facesIndex{};
 
-	//std::vector<vertex> objectVertices{};
-	//std::vector<normal> objectNormals{};
-	//std::vector<glm::vec2> objectTexCoords{};
+	std::vector<vertex> m_vertices{};
+	std::vector<normal> m_normals{};
+	std::vector<glm::vec2> m_texCoords{};
 
-	unsigned int height{}, width{};
 
-	lodepng::State state{};
+	lodepng::State m_state{};
 
-	std::vector<unsigned char> png{};
-	std::vector<unsigned char> image{};
+	std::vector<unsigned char> m_png{};
+	std::vector<unsigned char> m_image{};
 
-	GLuint vao{};
+	GLuint m_vao{};
 
-	GLuint vbo{};
-	GLuint vboNormals{};
-	GLuint vboTexCoords{};
+	GLuint m_vbo{};
+	GLuint m_vboNormals{};
+	GLuint m_vboTexCoords{};
 
-	GLuint ebo{};
+	GLuint m_ebo{};
 
-	int texID{};
+	int m_texID{};
+	unsigned int m_height{}, m_width{};
 
-	void loadObject(cy::TriMesh mesh, std::vector<vertex>& objectVertices, std::vector<normal>& objectNormals, std::vector<glm::vec2>& objectTexCoords, std::vector<unsigned int>& facesIndex) {
+	void loadFromFile(const char * filename) {
+		cy::TriMesh mesh;
+		mesh.LoadFromFileObj(filename);
+
+		std::cout << "Materials: " << mesh.NM() << std::endl;
+
+		if (mesh.NM() > 0) {
+			std::cout << "MAP: " << mesh.M(0).map_Kd << std::endl;
+
+			unsigned error = lodepng::load_file(m_png, std::string(mesh.M(0).map_Kd).c_str());
+
+			if (!error) error = lodepng::decode(m_image, m_width, m_height, m_state, m_png);
+			if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+		}
+
+		generateBuffers(mesh);
+	}
+
+	void generateBuffers(cy::TriMesh mesh) {
 		//vector of vertices
 		int n = mesh.NV();
 		for (int i = 0; i < n; i++) {
-			objectVertices.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f });
+			m_vertices.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f });
 		}
 
 		int nf = mesh.NF();
@@ -102,21 +120,21 @@ public:
 
 				//adiciona ao vbo de vértices no final o vértices que precisa duplicar
 
-				std::for_each(list.begin() + 1, list.end(), [&mesh, &nf, &objectVertices](vertexIndices x) {
+				for (int m = 1; m < list.size(); m++) {
 
-					int tSize = objectVertices.size();
+					int tSize = m_vertices.size();
 					//adiciona vertice
-					objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+					m_vertices.push_back({ mesh.V(list.at(m).vertex).x, mesh.V(list.at(m).vertex).y, mesh.V(list.at(m).vertex).z, 0.5f, 0.5f, 0.5f });
 
 					//atualiza os indices dos vértices duplicados
 					for (int f = 0; f < nf; f++) {
 						for (int k = 0; k < 3; k++) {
-							if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k]) {
+							if (list.at(m).vertex == mesh.F(f).v[k] && list.at(m).normal == mesh.FN(f).v[k]) {
 								mesh.F(f).v[k] = tSize;
 							}
 						}
 					}
-					});
+				};
 
 				list.clear();
 			}
@@ -168,30 +186,30 @@ public:
 				checkVertex[list[0].vertex] = true;
 
 				//adiciona ao vbo de vértices no final o vértices que precisa duplicar
-				std::for_each(list.begin() + 1, list.end(), [&mesh, &nf, &objectVertices](vertexIndices x) {
+				for (int m = 1; m < list.size(); m++) {
 
-					int tSize = objectVertices.size();
+					int tSize = m_vertices.size();
 					//adiciona vertice
-					objectVertices.push_back({ mesh.V(x.vertex).x, mesh.V(x.vertex).y, mesh.V(x.vertex).z, 0.5f, 0.5f, 0.5f });
+					m_vertices.push_back({ mesh.V(list.at(m).vertex).x, mesh.V(list.at(m).vertex).y, mesh.V(list.at(m).vertex).z, 0.5f, 0.5f, 0.5f });
 					//normals.push_back({ mesh.VN(x.normal).x, mesh.VN(x.normal).y, mesh.VN(x.normal).z});
 
 
 					for (int f = 0; f < nf; f++) {
 						for (int k = 0; k < 3; k++) {
 							//mesh.VN(mesh.FN(f).v[k]).x
-							if (x.vertex == mesh.F(f).v[k] && x.normal == mesh.FN(f).v[k] && x.texCoord == mesh.FT(f).v[k]) {
+							if (list.at(m).vertex == mesh.F(f).v[k] && list.at(m).normal == mesh.FN(f).v[k] && list.at(m).texCoord == mesh.FT(f).v[k]) {
 								mesh.F(f).v[k] = tSize;
-								mesh.FN(f).v[k] = x.normal;
+								mesh.FN(f).v[k] = list.at(m).normal;
 							}
 						}
 					}
-					});
+				};
 			}
 
 			list.clear();
 		}
 
-		int nTex = objectVertices.size();
+		int nTex = m_vertices.size();
 		int texIndex{};
 
 		for (int f = 0; f < mesh.NF(); f++) {
@@ -200,8 +218,8 @@ public:
 				for (int j = 0; j < nf; j++) {
 					if (mesh.F(j).v[k] == texIndex) {
 						texIndex++;
-						objectTexCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
-						objectNormals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
+						m_texCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
+						m_normals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
 						//continue;
 					}
 				}
@@ -209,20 +227,19 @@ public:
 		}
 
 		for (int i = 0; i < nf; i++) {
-			facesIndex.push_back({ mesh.F(i).v[0] });
-			facesIndex.push_back({ mesh.F(i).v[1] });
-			facesIndex.push_back({ mesh.F(i).v[2] });
+			m_facesIndex.push_back({ mesh.F(i).v[0] });
+			m_facesIndex.push_back({ mesh.F(i).v[1] });
+			m_facesIndex.push_back({ mesh.F(i).v[2] });
 		}
 
-		std::cout << objectVertices.size() << "  <- Vertices" << std::endl;
-		std::cout << objectNormals.size() << "  <- Normals" << std::endl;
-		std::cout << objectTexCoords.size() << "  <- Tex" << std::endl;
+		std::cout << m_vertices.size() << "  <- Vertices" << std::endl;
+		std::cout << m_normals.size() << "  <- Normals" << std::endl;
+		std::cout << m_texCoords.size() << "  <- Tex" << std::endl;
 
 		std::cout << mesh.NF() << "  <- Faces" << std::endl;
 		std::cout << mesh.NV() << "  <- Original Vertex number" << std::endl;
 		std::cout << mesh.NVN() << "  <- Original Normal number" << std::endl;
 		std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 	}
-
 };
 
