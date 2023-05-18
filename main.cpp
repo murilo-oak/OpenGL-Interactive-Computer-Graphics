@@ -314,7 +314,7 @@ void myDisplay(){
 	glViewport(0, 0, texWidth, texHeight);
 	//glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texID);
+	glBindTexture(GL_TEXTURE_2D, object3D.m_texID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object3D.m_ebo);
 	
 	glDrawElements(GL_TRIANGLES, object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
@@ -335,22 +335,6 @@ void myDisplay(){
 
 	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
 	glutSwapBuffers();
-}
-
-void setObjectTexture(unsigned width, unsigned height, std::vector<unsigned char> image) {
-	glGenTextures(1, &texCubeID);
-	//texture
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	//filter
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//Tiling
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 }
 
 void setCubemapTexConfig() {
@@ -430,16 +414,15 @@ int main(int argc, char** argv) {
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
 	cy::GLSLShader fragmentS;
-	fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
-	//fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
-	
+	//fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
+	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);	
 	program.CreateProgram();
 	program.AttachShader(fragmentS);
 	program.AttachShader(vertexS);
 	program.Link();
 
-	//glUseProgram(program.GetID());
-	setObjectTexture(windowWidth, windowHeight, object3D.m_image);
+	object3D.setTexture(windowWidth, windowHeight);
+
 	setCubemapTexConfig();
 	setUniformVariables(program.GetID());
 	setCubemapConfig();

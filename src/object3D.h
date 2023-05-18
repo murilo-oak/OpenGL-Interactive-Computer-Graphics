@@ -50,7 +50,9 @@ public:
 
 	GLuint m_frameBuffer{};
 	GLuint m_renderedTexture{};
-	int m_texID{};
+	
+	GLuint m_texID{};
+	
 	unsigned int m_height{}, m_width{};
 	unsigned int m_texWidth{}, m_texHeight{};
 
@@ -109,6 +111,24 @@ public:
 		glGenBuffers(1, &m_ebo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_facesIndex.size() * sizeof(unsigned int), m_facesIndex.data(), GL_STATIC_DRAW);
+	}
+	void setTexture(unsigned texSizeWidth, unsigned texSizeHeight) {
+		m_texWidth = texSizeWidth;
+		m_texHeight = texSizeHeight;
+
+		glGenTextures(1, &m_texID);
+		//texture
+		glBindTexture(GL_TEXTURE_2D, m_texID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texSizeWidth, texSizeHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_image.data());
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		//filter
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		//Tiling
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	}
 
 private:
