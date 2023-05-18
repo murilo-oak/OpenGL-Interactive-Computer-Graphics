@@ -121,6 +121,7 @@ cy::GLSLProgram skyboxProgram;
 
 Cubemap cube;
 Camera cam;
+
 Object3D object3D;
 Plane plane;
 
@@ -298,8 +299,8 @@ void myDisplay(){
 	glUseProgram(skyboxProgram.GetID());
 	
 	glDepthMask(GL_FALSE);
-	glBindVertexArray(vaoCube);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
+	glBindVertexArray(cube.m_vao);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cube.texCubeID);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
 	
@@ -335,37 +336,6 @@ void myDisplay(){
 
 	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
 	glutSwapBuffers();
-}
-
-void setCubemapTexConfig() {
-	glGenTextures(1, &texCubeID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeID);
-
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, cube.width, cube.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, cube.image[i].data());
-	}
-
-	//cube filter parameters
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-}
-
-void setCubemapConfig() {
-	//Cubemap
-	glGenVertexArrays(1, &vaoCube);
-	glBindVertexArray(vaoCube);
-
-	//positions
-	glCreateBuffers(1, &vboCube);
-	glBindBuffer(GL_ARRAY_BUFFER, vboCube);
-	glNamedBufferStorage(vboCube, sizeof(skyboxVertices), skyboxVertices, 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glEnableVertexAttribArray(0);
 }
 
 int main(int argc, char** argv) {
@@ -416,16 +386,17 @@ int main(int argc, char** argv) {
 	cy::GLSLShader fragmentS;
 	//fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
 	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);	
+	
 	program.CreateProgram();
 	program.AttachShader(fragmentS);
 	program.AttachShader(vertexS);
 	program.Link();
 
 	object3D.setTexture(windowWidth, windowHeight);
+	
+	cube.set();
 
-	setCubemapTexConfig();
 	setUniformVariables(program.GetID());
-	setCubemapConfig();
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
