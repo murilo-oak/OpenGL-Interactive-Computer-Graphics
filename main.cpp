@@ -62,35 +62,6 @@ int texWidth{ 500 }, texHeight{ 500 };
 float angleX = 0.90f;
 float angleY = 0.90f;
 
-
-std::vector<Object3D::vertex> vertices{
-	// positions          // colors           
-	{13.5f,  13.5f, 0.0f,   1.0f, 0.0f, 0.0f},   // top right
-	{13.5f, -13.5f, 0.0f,   0.0f, 1.0f, 0.0f },   // bottom right
-	{-13.5f, -13.5f, 0.0f,   0.0f, 0.0f, 1.0f},   // bottom left
-	{-13.5f,  13.5f, 0.0f,   1.0f, 1.0f, 0.0f}   // top left 
-};
-
-std::vector<Object3D::normal> normalsPlane{
-	// positions          // colors           
-	{0.0f, 0.0f, 1.0f},   // top right
-	{0.0f, 0.0f, 1.0f },   // bottom right
-	{0.0f, 0.0f, 1.0f},   // bottom left
-	{0.0f, 0.0f, 1.0f}   // top left 
-};
-
-std::vector<glm::vec2> texcoordPlane{
-	{1.0f, 1.0f},   // top right
-	{1.0f, 0.0f },   // bottom right
-	{0.0f, 0.0f},   // bottom left
-	{0.0f, 1.0f}    // top left 
-};
-
-unsigned int facesPlane[] {
-	2, 1, 0,
-	2, 0, 3
-};
-
 float skyboxVertices[] = {
 	// positions          
 	-1.0f,  1.0f, -1.0f,
@@ -315,7 +286,7 @@ void  specialFunc(int key, int x, int y) {
 
 }
 
-void myDisplayTeapot(){
+void myDisplay(){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
@@ -473,7 +444,6 @@ int main(int argc, char** argv) {
 	setUniformVariables(program.GetID());
 	setCubemapConfig();
 
-
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
 
@@ -485,7 +455,7 @@ int main(int argc, char** argv) {
 	setUniformVariables(skyboxProgram.GetID());
 	//scene end
 
-	glutDisplayFunc(myDisplayTeapot);
+	glutDisplayFunc(myDisplay);
 	glutMainLoop();
 
 	return 0;
