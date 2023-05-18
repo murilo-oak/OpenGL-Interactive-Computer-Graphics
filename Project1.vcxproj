@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\plane.cpp" />
     <ClCompile Include="src\object3D.cpp" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\cubemap.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\plane.h" />
     <ClInclude Include="src\object3D.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\cubemap.h" />

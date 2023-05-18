@@ -17,6 +17,7 @@
 #include "src/Cubemap.h"
 #include "src/camera.h"
 #include "src/object3D.h"
+#include "src/plane.h"
 
 GLuint vao{};
 GLuint vaoPlane{};
@@ -150,6 +151,7 @@ cy::GLSLProgram skyboxProgram;
 Cubemap cube;
 Camera cam;
 Object3D object3D;
+Plane plane;
 
 void myIdle() {
 	glutPostRedisplay();
@@ -336,13 +338,13 @@ void myDisplayTeapot(){
 	glUseProgram(program.GetID());
 
 
-	glBindVertexArray(vao);
+	glBindVertexArray(object3D.m_vao);
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, texWidth, texHeight);
 	//glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object3D.m_ebo);
 	
 	glDrawElements(GL_TRIANGLES, object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 
@@ -363,109 +365,7 @@ void myDisplayTeapot(){
 	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
 	glutSwapBuffers();
 }
-void setObject() {
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	//positions
-	glCreateBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glNamedBufferStorage(vbo, object3D.m_vertices.size() * sizeof(Object3D::vertex), object3D.m_vertices.data(), 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::vertex), (void*)offsetof(Object3D::vertex, x));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::vertex), (void*)offsetof(Object3D::vertex, r));
-
-	glEnableVertexAttribArray(0);//antes de renderizar
-	glEnableVertexAttribArray(1);//antes de renderizar
-
-	//normals
-	glCreateBuffers(1, &vboNormals);
-	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	glNamedBufferStorage(vboNormals, object3D.m_normals.size() * sizeof(Object3D::normal), object3D.m_normals.data(), 0);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::normal), 0);
-
-	glEnableVertexAttribArray(2);//antes de renderizar
-
-	//texcoord
-	glCreateBuffers(1, &vboTexCoords);
-	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
-	glNamedBufferStorage(vboTexCoords, object3D.m_texCoords.size() * sizeof(glm::vec2), object3D.m_texCoords.data(), 0);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
-
-	glEnableVertexAttribArray(3);
-
-	glGenVertexArrays(1, &vaoPlane);
-	glBindVertexArray(vaoPlane);
-
-	//indices
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, object3D.m_facesIndex.size() * sizeof(unsigned int), object3D.m_facesIndex.data(), GL_STATIC_DRAW);
-}
-
-void setFrameBuffer() {
-	//framebuffer
-	glGenFramebuffers(1, &frameBuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
-
-	//renderedTexture
-	glGenTextures(1, &renderedTexture);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//depth buffer
-	GLuint depthBuffer{};
-	glGenRenderbuffers(1, &depthBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, texWidth, texHeight);
-
-	//configure framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
-	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-
-	//if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER != GL_FRAMEBUFFER_COMPLETE)) {
-	//	return false;
-	//}
-}
-
-void setPlane() {
-	//positions
-	glCreateBuffers(1, &vboPlane);
-	glBindBuffer(GL_ARRAY_BUFFER, vboPlane);
-	glNamedBufferStorage(vboPlane, 4 * sizeof(Object3D::vertex), vertices.data(), 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::vertex), (void*)offsetof(Object3D::vertex, x));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::vertex), (void*)offsetof(Object3D::vertex, r));
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	//normals
-	glCreateBuffers(1, &vboNormalsPlane);
-	glBindBuffer(GL_ARRAY_BUFFER, vboNormalsPlane);
-	glNamedBufferStorage(vboNormalsPlane, normalsPlane.size() * sizeof(Object3D::normal), normalsPlane.data(), 0);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::normal), 0);
-
-	glEnableVertexAttribArray(2);//antes de renderizar
-
-	//texcoord
-	glCreateBuffers(1, &vboTexCoordsPlane);
-	glBindBuffer(GL_ARRAY_BUFFER, vboTexCoordsPlane);
-	glNamedBufferStorage(vboTexCoordsPlane, texcoordPlane.size() * sizeof(glm::vec2), texcoordPlane.data(), 0);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
-
-	glEnableVertexAttribArray(3);
-
-	glGenBuffers(1, &eboPlane);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), facesPlane, GL_STATIC_DRAW);
-
-	setFrameBuffer();
-}
 void setObjectTexture(unsigned width, unsigned height, std::vector<unsigned char> image) {
 	glGenTextures(1, &texCubeID);
 	//texture
@@ -552,9 +452,8 @@ int main(int argc, char** argv) {
 	cam.setMVP(windowHeight, windowHeight);
 	
 	object3D.loadFromFile("teapot.obj");
-
-	setObject();
-	setPlane();
+	object3D.set();
+	plane.set();
 
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
