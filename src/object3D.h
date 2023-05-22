@@ -3,8 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include "../ThirdParty/include/GL/glew.h"
-#include "../lodepng/lodepng.h"
 #include "../ThirdParty/include/GL/freeglut.h"
+#include "../lodepng/lodepng.h"
 #include "../cyCodeBase/cyTriMesh.h"
 #include "../glm/glm.hpp"
 

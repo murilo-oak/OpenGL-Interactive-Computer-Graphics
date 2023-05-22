@@ -19,34 +19,12 @@
 #include "src/object3D.h"
 #include "src/plane.h"
 
-GLuint vao{};
-GLuint vaoPlane{};
-GLuint vaoCube{};
-
-GLuint vbo{};
-GLuint vboPlane{};
-GLuint vboCube{};
-
-GLuint vboNormals{};
-GLuint vboNormalsPlane{};
-GLuint vboNormalsCube{};
-
-GLuint vboTexCoords{};
-GLuint vboTexCoordsPlane{};
-GLuint vboTexCoordsCube{};
-
-GLuint ebo{};
-GLuint eboPlane{};
-GLuint eboCube{};
-
-GLuint shaderProgram;
-GLuint shaderSkyboxProgram;
+//#include "src/scene.h"
+#include "Scenes/scene1.h"
 
 GLuint frameBuffer{};
 GLuint renderedTexture{};
 int texID{};
-
-GLuint texCubeID{};
 
 std::vector<cy::Vec3f> geometryMesh;
 std::vector<unsigned int> facesIndex;
@@ -363,51 +341,8 @@ int main(int argc, char** argv) {
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 	
-	//scene start
-	cube.loadImageFilesCubeMap(
-		"cubemap/cubemap_posx.png",
-		"cubemap/cubemap_negx.png",
-		"cubemap/cubemap_posy.png",
-		"cubemap/cubemap_negy.png",
-		"cubemap/cubemap_posz.png",
-		"cubemap/cubemap_negz.png"
-	);
-
-	cam.updatePosition(angleX, angleY);
-	cam.setMVP(windowHeight, windowHeight);
-	
-	object3D.loadFromFile("teapot.obj");
-	object3D.set();
-	plane.set();
-
-	cy::GLSLShader vertexS;
-	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
-
-	cy::GLSLShader fragmentS;
-	//fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
-	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);	
-	
-	program.CreateProgram();
-	program.AttachShader(fragmentS);
-	program.AttachShader(vertexS);
-	program.Link();
-
-	object3D.setTexture(windowWidth, windowHeight);
-	
-	cube.set();
-
-	setUniformVariables(program.GetID());
-
-	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
-	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
-
-	skyboxProgram.CreateProgram();
-	skyboxProgram.AttachShader(fragmentS);
-	skyboxProgram.AttachShader(vertexS);
-	skyboxProgram.Link();
-
-	setUniformVariables(skyboxProgram.GetID());
-	//scene end
+	Scene1 scene1{};
+	scene1.setup(angleX, angleY, windowHeight, windowWidth, cam, object3D, plane, program, skyboxProgram, lightDir, cube);
 
 	glutDisplayFunc(myDisplay);
 	glutMainLoop();
