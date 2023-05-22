@@ -153,6 +153,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Scenes\scene1.cpp" />
+    <ClCompile Include="src\scene.cpp" />
     <ClCompile Include="src\plane.cpp" />
     <ClCompile Include="src\object3D.cpp" />
     <ClCompile Include="src\camera.cpp" />
@@ -161,6 +163,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Scenes\scene1.h" />
+    <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\plane.h" />
     <ClInclude Include="src\object3D.h" />
     <ClInclude Include="src\camera.h" />
