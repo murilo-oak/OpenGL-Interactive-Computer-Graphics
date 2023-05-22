@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\mouseinput.cpp" />
     <ClCompile Include="Scenes\scene1.cpp" />
     <ClCompile Include="src\scene.cpp" />
     <ClCompile Include="src\plane.cpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\mouseinput.h" />
     <ClInclude Include="Scenes\scene1.h" />
     <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\plane.h" />

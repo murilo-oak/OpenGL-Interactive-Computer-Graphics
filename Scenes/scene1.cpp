@@ -1,8 +1,8 @@
 #include "scene1.h"
 
 
-void setUniformVariables(GLuint programID, float angleX, float angleY, unsigned int windowHeight, unsigned int windowWidth,
-	Camera& cam, Object3D& object3D, Plane& plane, cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, glm::vec3& lightDir) {
+void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth,
+	Object3D& object3D, Plane& plane, cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, glm::vec3& lightDir) {
 	glUseProgram(programID);
 
 	GLint sampler{};
@@ -38,7 +38,7 @@ void setUniformVariables(GLuint programID, float angleX, float angleY, unsigned 
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
 }
 
-void Scene1::setup(float angleX, float angleY, unsigned int windowHeight, unsigned int windowWidth, Camera &cam, Object3D &object3D, Plane &plane, cy::GLSLProgram &program, cy::GLSLProgram &skyboxProgram, glm::vec3 &lightDir, Cubemap& cube) {
+void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, Object3D &object3D, Plane &plane, cy::GLSLProgram &program, cy::GLSLProgram &skyboxProgram, Cubemap& cube) {
 	cube.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
 		"cubemap/cubemap_negx.png",
@@ -71,7 +71,7 @@ void Scene1::setup(float angleX, float angleY, unsigned int windowHeight, unsign
 
 	cube.set();
 
-	setUniformVariables(program.GetID(),angleX, angleY, windowHeight, windowWidth, cam, object3D, plane, program, skyboxProgram, lightDir);
+	setUniformVariables(program.GetID(), windowHeight, windowWidth, object3D, plane, program, skyboxProgram, lightDir);
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
@@ -81,8 +81,30 @@ void Scene1::setup(float angleX, float angleY, unsigned int windowHeight, unsign
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-	setUniformVariables(skyboxProgram.GetID(), angleX, angleY, windowHeight, windowWidth, cam, object3D, plane, program, skyboxProgram, lightDir);
+	setUniformVariables(skyboxProgram.GetID(), windowHeight, windowWidth, object3D, plane, program, skyboxProgram, lightDir);
 };
 
-void Scene1::update() {};
+void Scene1::update() 
+{
+	cam.update(angleX, angleY);
+};
+
 void Scene1::render() {};
+
+void Scene1::onRightButton(MouseInput mouse) {
+	angleY += (mouse.getY() - mouse.getLastY()) / 400.0f;
+	angleX += (mouse.getX() - mouse.getLastX()) / 400.0f;
+};
+
+void Scene1::onLeftButton(MouseInput mouse)
+{
+	cam.updatePosition(angleX, angleY, ((mouse.getY() - mouse.getLastY()) / 40.0f));
+};
+
+void Scene1::onLeftButton2(MouseInput mouse)
+{
+	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), (mouse.getX() - mouse.getLastX()) / 40.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), (mouse.getY() - mouse.getLastY()) / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::vec4 newLightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
+	lightDir = newLightDir;
+};
