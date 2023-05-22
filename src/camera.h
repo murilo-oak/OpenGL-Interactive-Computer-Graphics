@@ -70,6 +70,12 @@ public:
 		updateMVP();
 	}
 
+	void update(float angleX, float angleY) {
+		updatePosition(angleX, angleY);
+		setViewMat();
+		updateMVP();
+	}
+
 private:
 };
 
