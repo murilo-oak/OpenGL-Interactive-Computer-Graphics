@@ -22,6 +22,6 @@ public:
 	void onLeftButton2(MouseInput mouse) override;
 
 	void setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth, 
-		cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, glm::vec3& lightDir);
+		cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram);
 };
 
