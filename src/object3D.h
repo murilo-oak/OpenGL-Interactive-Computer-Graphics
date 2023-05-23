@@ -55,25 +55,8 @@ public:
 	
 	unsigned int m_texWidth{}, m_texHeight{};
 
-	void loadFromFile(const char * filename) {
-		cy::TriMesh mesh;
-		mesh.LoadFromFileObj(filename);
-
-		std::cout << "Materials: " << mesh.NM() << std::endl;
-
-		if (mesh.NM() > 0) {
-			std::cout << "MAP: " << mesh.M(0).map_Kd << std::endl;
-
-			unsigned error = lodepng::load_file(m_png, std::string(mesh.M(0).map_Kd).c_str());
-
-			if (!error) error = lodepng::decode(m_image, m_texWidth, m_texHeight, m_state, m_png);
-			if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-		}
-
-		generateBuffers(mesh);
-	}
-	void set() {
-
+	void set(const char* filename) {
+		loadFromFile(filename);
 		glGenVertexArrays(1, &m_vao);
 		glBindVertexArray(m_vao);
 
@@ -131,6 +114,23 @@ public:
 	}
 
 private:
+	void loadFromFile(const char* filename) {
+		cy::TriMesh mesh;
+		mesh.LoadFromFileObj(filename);
+
+		std::cout << "Materials: " << mesh.NM() << std::endl;
+
+		if (mesh.NM() > 0) {
+			std::cout << "MAP: " << mesh.M(0).map_Kd << std::endl;
+
+			unsigned error = lodepng::load_file(m_png, std::string(mesh.M(0).map_Kd).c_str());
+
+			if (!error) error = lodepng::decode(m_image, m_texWidth, m_texHeight, m_state, m_png);
+			if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+		}
+
+		generateBuffers(mesh);
+	}
 	void generateBuffers(cy::TriMesh mesh) {
 		//vector of vertices
 		int n = mesh.NV();
