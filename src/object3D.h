@@ -16,10 +16,6 @@ public:
 		float r, g, b;
 	};
 
-	struct normal {
-		float x, y, z;
-	};
-
 	struct vertexIndices {
 		int vertex;
 		int normal;
@@ -29,7 +25,7 @@ public:
 	std::vector<unsigned int> m_facesIndex{};
 
 	std::vector<vertex> m_vertices{};
-	std::vector<normal> m_normals{};
+	std::vector<glm::vec3> m_normals{};
 	std::vector<glm::vec2> m_texCoords{};
 
 
@@ -73,8 +69,8 @@ public:
 		//normals
 		glCreateBuffers(1, &m_vboNormals);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
-		glNamedBufferStorage(m_vboNormals, m_normals.size() * sizeof(normal), m_normals.data(), 0);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(normal), 0);
+		glNamedBufferStorage(m_vboNormals, m_normals.size() * sizeof(glm::vec3), m_normals.data(), 0);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
 		glEnableVertexAttribArray(2);//antes de renderizar
 
