@@ -40,65 +40,24 @@ void myKeyboard(unsigned char key, int x, int y) {
 	}
 	glutPostRedisplay();
 }
-void updateLightCamUniforms(GLuint programID) {
-	glUseProgram(programID);
 
-	GLint uniformTransLoc = glGetUniformLocation(programID, "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &scene1.cam.m_position[0]);
-
-	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
-	glUniform3fv(uniformLightDir, 1, &scene1.lightDir[0]);
-}
-void updateUniformVariables(GLuint programID) {
-	glUseProgram(programID);
-
-	if (programID == scene1.skyboxProgram.GetID()) {
-		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_projection * glm::mat4(glm::mat3(scene1.cam.m_view))));
-	}
-
-	if (programID == scene1.program.GetID()) {
-		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_mvp));
-	}
-
-	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_mv));
-
-	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_mv4));
-
-	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_invMv4));
-
-	updateLightCamUniforms(programID);
-}
 void onLeftButton(int x, int y) {
+	
 	mouse.update(x, y);
-
 	scene1.onLeftButton(mouse);
-
-	updateUniformVariables(scene1.program.GetID());
-	updateUniformVariables(scene1.skyboxProgram.GetID());
 
 	glutPostRedisplay();
 }
 void onLeftButton2(int x, int y) {
-
+	
 	mouse.update(x, y);
 	scene1.onLeftButton2(mouse);
-	
-	updateLightCamUniforms(scene1.program.GetID());
 
 	glutPostRedisplay();
 }
 void onRightButton(int x, int y) {
 	mouse.update(x, y);
-
 	scene1.onRightButton(mouse);
-
-	updateUniformVariables(scene1.program.GetID());
-	updateUniformVariables(scene1.skyboxProgram.GetID());
 
 	glutPostRedisplay();
 }
@@ -122,6 +81,7 @@ void specialFunc(int key, int x, int y) {
 	}
 }
 void myDisplay(){
+	
 	scene1.update();
 	scene1.render();
 }
