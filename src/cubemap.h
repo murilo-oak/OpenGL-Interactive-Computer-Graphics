@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include "../lodepng.h"
+#include "../ThirdParty/include/lodepng/lodepng.h"
 #include "../ThirdParty/include/GL/glew.h"	
 
 class Cubemap

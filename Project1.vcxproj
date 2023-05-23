@@ -160,7 +160,7 @@
     <ClCompile Include="src\object3D.cpp" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\cubemap.cpp" />
-    <ClCompile Include="lodepng\lodepng.cpp" />
+    <ClCompile Include="ThirdParty\include\lodepng\lodepng.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,11 +171,11 @@
     <ClInclude Include="src\object3D.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\cubemap.h" />
-    <ClInclude Include="cyCodeBase\cyCore.h" />
-    <ClInclude Include="cyCodeBase\cyGL.h" />
-    <ClInclude Include="cyCodeBase\cyIVector.h" />
-    <ClInclude Include="cyCodeBase\cyTriMesh.h" />
-    <ClInclude Include="lodepng\lodepng.h" />
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyCore.h" />
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyGL.h" />
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyIVector.h" />
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyTriMesh.h" />
+    <ClInclude Include="ThirdParty\include\lodepng\lodepng.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\reflecting_surface.frag" />
