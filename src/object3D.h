@@ -22,15 +22,15 @@ public:
 		int texCoord;
 	};
 
+	std::vector<vertex>       m_vertices{};
+	std::vector<glm::vec3>    m_normals{};
+	std::vector<glm::vec2>    m_texCoords{};
 	std::vector<unsigned int> m_facesIndex{};
 
-	std::vector<vertex> m_vertices{};
-	std::vector<glm::vec3> m_normals{};
-	std::vector<glm::vec2> m_texCoords{};
-
+	GLuint m_texID{};
+	unsigned int m_texWidth{}, m_texHeight{};
 
 	lodepng::State m_state{};
-
 	std::vector<unsigned char> m_png{};
 	std::vector<unsigned char> m_image{};
 
@@ -41,54 +41,19 @@ public:
 	GLuint m_vboTexCoords{};
 	GLuint m_ebo{};
 
-	GLuint m_vaoPlane{};
-
-
 	GLuint m_frameBuffer{};
 	GLuint m_renderedTexture{};
-	
-	GLuint m_texID{};
-	
-	unsigned int m_texWidth{}, m_texHeight{};
 
 	void set(const char* filename) {
 		loadFromFile(filename);
+		
 		glGenVertexArrays(1, &m_vao);
 		glBindVertexArray(m_vao);
 
-		//positions
-		glCreateBuffers(1, &m_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glNamedBufferStorage(m_vbo, m_vertices.size() * sizeof(vertex), m_vertices.data(), 0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
-
-		glEnableVertexAttribArray(0);//antes de renderizar
-		glEnableVertexAttribArray(1);//antes de renderizar
-
-		//normals
-		glCreateBuffers(1, &m_vboNormals);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
-		glNamedBufferStorage(m_vboNormals, m_normals.size() * sizeof(glm::vec3), m_normals.data(), 0);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
-
-		glEnableVertexAttribArray(2);//antes de renderizar
-
-		//texcoord
-		glCreateBuffers(1, &m_vboTexCoords);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vboTexCoords);
-		glNamedBufferStorage(m_vboTexCoords, m_texCoords.size() * sizeof(glm::vec2), m_texCoords.data(), 0);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
-
-		glEnableVertexAttribArray(3);
-
-		//glGenVertexArrays(1, &m_vaoPlane);
-		//glBindVertexArray(m_vaoPlane);
-
-		//indices
-		glGenBuffers(1, &m_ebo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_facesIndex.size() * sizeof(unsigned int), m_facesIndex.data(), GL_STATIC_DRAW);
+		setVboPositions();
+		setVboNormals();
+		setVboTexCoords();
+		setEbo(GL_STATIC_DRAW);
 	}
 	void setTexture(unsigned texSizeWidth, unsigned texSizeHeight) {
 		m_texWidth = texSizeWidth;
@@ -110,6 +75,42 @@ public:
 	}
 
 private:
+	void setVboPositions() 
+	{
+		glCreateBuffers(1, &m_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		glNamedBufferStorage(m_vbo, m_vertices.size() * sizeof(vertex), m_vertices.data(), 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, x));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)offsetof(vertex, r));
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+	}
+	void setVboNormals()
+	{
+		glCreateBuffers(1, &m_vboNormals);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
+		glNamedBufferStorage(m_vboNormals, m_normals.size() * sizeof(glm::vec3), m_normals.data(), 0);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+
+		glEnableVertexAttribArray(2);
+	}
+	void setVboTexCoords() 
+	{
+		//texcoord
+		glCreateBuffers(1, &m_vboTexCoords);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboTexCoords);
+		glNamedBufferStorage(m_vboTexCoords, m_texCoords.size() * sizeof(glm::vec2), m_texCoords.data(), 0);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+
+		glEnableVertexAttribArray(3);
+	}
+	void setEbo(GLenum drawMode)
+	{
+		glGenBuffers(1, &m_ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_facesIndex.size() * sizeof(unsigned int), m_facesIndex.data(), drawMode);
+	}
 	void loadFromFile(const char* filename) {
 		cy::TriMesh mesh;
 		mesh.LoadFromFileObj(filename);
@@ -303,4 +304,3 @@ private:
 		std::cout << mesh.NVT() << "  <- Original Tex number" << std::endl;
 	}
 };
-
