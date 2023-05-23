@@ -40,9 +40,6 @@ int texWidth{ 500 }, texHeight{ 500 };
 glm::mat4 rotX = glm::mat4(1.0f);
 glm::mat4 rotY = glm::mat4(1.0f);
 
-cy::GLSLProgram program;
-cy::GLSLProgram skyboxProgram;
-
 Cubemap cube;
 MouseInput mouse{};
 
@@ -71,12 +68,12 @@ void updateLightCamUniforms(GLuint programID) {
 void updateUniformVariables(GLuint programID) {
 	glUseProgram(programID);
 
-	if (programID == skyboxProgram.GetID()) {
+	if (programID == scene1.skyboxProgram.GetID()) {
 		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
 		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_projection * glm::mat4(glm::mat3(scene1.cam.m_view))));
 	}
 
-	if (programID == program.GetID()) {
+	if (programID == scene1.program.GetID()) {
 		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
 		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(scene1.cam.m_mvp));
 	}
@@ -98,8 +95,8 @@ void onLeftButton(int x, int y) {
 
 	scene1.onLeftButton(mouse);
 
-	updateUniformVariables(program.GetID());
-	updateUniformVariables(skyboxProgram.GetID());
+	updateUniformVariables(scene1.program.GetID());
+	updateUniformVariables(scene1.skyboxProgram.GetID());
 
 	glutPostRedisplay();
 }
@@ -110,7 +107,7 @@ void onLeftButton2(int x, int y) {
 	mouse.update(x, y);
 	scene1.onLeftButton2(mouse);
 	
-	updateLightCamUniforms(program.GetID());
+	updateLightCamUniforms(scene1.program.GetID());
 
 	glutPostRedisplay();
 }
@@ -120,8 +117,8 @@ void onRightButton(int x, int y) {
 
 	scene1.onRightButton(mouse);
 
-	updateUniformVariables(program.GetID());
-	updateUniformVariables(skyboxProgram.GetID());
+	updateUniformVariables(scene1.program.GetID());
+	updateUniformVariables(scene1.skyboxProgram.GetID());
 
 	glutPostRedisplay();
 }
@@ -159,7 +156,7 @@ void myDisplay(){
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, texWidth, texHeight);
-	glUseProgram(skyboxProgram.GetID());
+	glUseProgram(scene1.skyboxProgram.GetID());
 	
 	glDepthMask(GL_FALSE);
 	glBindVertexArray(cube.m_vao);
@@ -170,7 +167,7 @@ void myDisplay(){
 	glEnable(GL_DEPTH_TEST);
 
 
-	glUseProgram(program.GetID());
+	glUseProgram(scene1.program.GetID());
 
 
 	glBindVertexArray(scene1.object3D.m_vao);
@@ -226,7 +223,7 @@ int main(int argc, char** argv) {
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 
-	scene1.setup(windowHeight, windowWidth, program, skyboxProgram, cube);
+	scene1.setup(windowHeight, windowWidth, cube);
 
 	glutDisplayFunc(myDisplay);
 	glutMainLoop();
