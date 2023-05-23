@@ -34,7 +34,7 @@ void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, un
 	glUniform3fv(uniformTransLoc, 1, &m_cam.m_position[0]);
 
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
-	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+	glUniform3fv(uniformLightDir, 1, &m_lightDir[0]);
 }
 
 void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
@@ -163,8 +163,8 @@ void Scene1::onLeftButton2(MouseInput mouse)
 {
 	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), (mouse.getX() - mouse.getLastX()) / 40.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), (mouse.getY() - mouse.getLastY()) / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-	glm::vec4 newLightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
-	lightDir = newLightDir;
+	glm::vec4 newLightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(m_lightDir), 1.0f);
+	m_lightDir = newLightDir;
 
 	updateLightCamUniforms(m_objectProgram.GetID());
 };
@@ -176,7 +176,7 @@ void Scene1::updateLightCamUniforms(GLuint programID) {
 	glUniform3fv(uniformTransLoc, 1, &m_cam.m_position[0]);
 
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
-	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+	glUniform3fv(uniformLightDir, 1, &m_lightDir[0]);
 }
 
 void Scene1::updateUniformVariables(GLuint programID) {
