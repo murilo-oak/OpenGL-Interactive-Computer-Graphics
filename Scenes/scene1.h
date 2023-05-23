@@ -17,6 +17,7 @@ public:
 	float angleY{ 0.90f };
 
 	glm::vec3 lightDir{ 0.0f, 1.0f, 0.0f };
+	unsigned int m_windowHeight{}, m_windowWidth{};
 
 	void setup(unsigned int windowHeight, unsigned int windowWidth) override;
 	void update() override;

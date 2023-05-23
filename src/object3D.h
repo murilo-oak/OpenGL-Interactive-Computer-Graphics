@@ -53,7 +53,6 @@ public:
 	
 	GLuint m_texID{};
 	
-	unsigned int m_height{}, m_width{};
 	unsigned int m_texWidth{}, m_texHeight{};
 
 	void loadFromFile(const char * filename) {
@@ -67,7 +66,7 @@ public:
 
 			unsigned error = lodepng::load_file(m_png, std::string(mesh.M(0).map_Kd).c_str());
 
-			if (!error) error = lodepng::decode(m_image, m_width, m_height, m_state, m_png);
+			if (!error) error = lodepng::decode(m_image, m_texWidth, m_texHeight, m_state, m_png);
 			if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 		}
 

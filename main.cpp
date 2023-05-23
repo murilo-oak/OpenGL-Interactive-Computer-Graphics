@@ -14,11 +14,6 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "lodepng/lodepng.h"
-
-#include "src/Cubemap.h"
-#include "src/camera.h"
-#include "src/object3D.h"
-#include "src/plane.h"
 #include "src/mouseinput.h"
 
 #include "Scenes/scene1.h"
@@ -29,23 +24,14 @@ GLuint frameBuffer{};
 GLuint renderedTexture{};
 int texID{};
 
-std::vector<cy::Vec3f> geometryMesh;
-std::vector<unsigned int> facesIndex;
-
 int windowWidth{ 500 };
 int windowHeight{ 500 };
-
-int texWidth{ 500 }, texHeight{ 500 };
-
-glm::mat4 rotX = glm::mat4(1.0f);
-glm::mat4 rotY = glm::mat4(1.0f);
 
 MouseInput mouse{};
 
 void myIdle() {
 	glutPostRedisplay();
 }
-
 void myKeyboard(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27:
@@ -54,7 +40,6 @@ void myKeyboard(unsigned char key, int x, int y) {
 	}
 	glutPostRedisplay();
 }
-
 void updateLightCamUniforms(GLuint programID) {
 	glUseProgram(programID);
 
@@ -88,7 +73,6 @@ void updateUniformVariables(GLuint programID) {
 
 	updateLightCamUniforms(programID);
 }
-
 void onLeftButton(int x, int y) {
 	mouse.update(x, y);
 
@@ -99,8 +83,6 @@ void onLeftButton(int x, int y) {
 
 	glutPostRedisplay();
 }
-
-
 void onLeftButton2(int x, int y) {
 
 	mouse.update(x, y);
@@ -110,7 +92,6 @@ void onLeftButton2(int x, int y) {
 
 	glutPostRedisplay();
 }
-
 void onRightButton(int x, int y) {
 	mouse.update(x, y);
 
@@ -121,9 +102,7 @@ void onRightButton(int x, int y) {
 
 	glutPostRedisplay();
 }
-
 bool controlIsPressed = false;
-
 void myMouse(int button, int state, int x, int y) {
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
@@ -136,65 +115,15 @@ void myMouse(int button, int state, int x, int y) {
 		}	
 	}
 }
-
-void  specialFunc(int key, int x, int y) {
+void specialFunc(int key, int x, int y) {
 	if (key == GLUT_KEY_CTRL_L) {
 		mouse.update(x, y);
 		glutMotionFunc(onLeftButton2);
 	}
 }
-
 void myDisplay(){
 	scene1.update();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, texWidth, texHeight);
-	glUseProgram(scene1.skyboxProgram.GetID());
-	
-	glDepthMask(GL_FALSE);
-	glBindVertexArray(scene1.cube.m_vao);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, scene1.cube.texCubeID);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glDepthMask(GL_TRUE);
-	
-	glEnable(GL_DEPTH_TEST);
-
-
-	glUseProgram(scene1.program.GetID());
-
-
-	glBindVertexArray(scene1.object3D.m_vao);
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
-	glViewport(0, 0, texWidth, texHeight);
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, scene1.object3D.m_texID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene1.object3D.m_ebo);
-	
-	glDrawElements(GL_TRIANGLES, scene1.object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
-
-	/*glGenerateTextureMipmap(renderedTexture);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, windowWidth, windowHeight);
-	glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
-	glBindVertexArray(vaoPlane);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
-
-
-	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
-	glutSwapBuffers();
+	scene1.render();
 }
 
 int main(int argc, char** argv) {
@@ -210,7 +139,6 @@ int main(int argc, char** argv) {
 
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
-	//glutMotionFunc(motion);
 	glutSpecialFunc (specialFunc);
 
 	GLenum res = glewInit();
