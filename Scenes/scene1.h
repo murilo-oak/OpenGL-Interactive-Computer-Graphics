@@ -8,6 +8,8 @@ public:
 	Object3D object3D{};
 	Plane plane{};
 
+	Cubemap cube{};
+
 	cy::GLSLProgram program{};
 	cy::GLSLProgram skyboxProgram{};
 
@@ -16,7 +18,7 @@ public:
 
 	glm::vec3 lightDir{ 0.0f, 1.0f, 0.0f };
 
-	void setup(unsigned int windowHeight, unsigned int windowWidth, Cubemap& cube) override;
+	void setup(unsigned int windowHeight, unsigned int windowWidth) override;
 	void update() override;
 	void render() override;
 

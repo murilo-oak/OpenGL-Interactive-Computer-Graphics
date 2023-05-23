@@ -19,7 +19,7 @@ public:
 	bool m_setup{ false };
 
 	//virtual void setup() = 0;
-	virtual void setup(unsigned int windowHeight, unsigned int windowWidth, Cubemap& cube) = 0;
+	virtual void setup(unsigned int windowHeight, unsigned int windowWidth) = 0;
 	virtual void update() = 0;
 	virtual void render() = 0;
 	virtual void onRightButton(MouseInput mouse) = 0;

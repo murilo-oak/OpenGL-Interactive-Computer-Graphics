@@ -32,15 +32,14 @@ int texID{};
 std::vector<cy::Vec3f> geometryMesh;
 std::vector<unsigned int> facesIndex;
 
-int windowWidth{500};
-int windowHeight{500};
+int windowWidth{ 500 };
+int windowHeight{ 500 };
 
 int texWidth{ 500 }, texHeight{ 500 };
 
 glm::mat4 rotX = glm::mat4(1.0f);
 glm::mat4 rotY = glm::mat4(1.0f);
 
-Cubemap cube;
 MouseInput mouse{};
 
 void myIdle() {
@@ -159,8 +158,8 @@ void myDisplay(){
 	glUseProgram(scene1.skyboxProgram.GetID());
 	
 	glDepthMask(GL_FALSE);
-	glBindVertexArray(cube.m_vao);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cube.texCubeID);
+	glBindVertexArray(scene1.cube.m_vao);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, scene1.cube.texCubeID);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
 	
@@ -223,7 +222,7 @@ int main(int argc, char** argv) {
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 
-	scene1.setup(windowHeight, windowWidth, cube);
+	scene1.setup(windowHeight, windowWidth);
 
 	glutDisplayFunc(myDisplay);
 	glutMainLoop();
