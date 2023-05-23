@@ -45,7 +45,6 @@ cy::GLSLProgram skyboxProgram;
 
 Cubemap cube;
 
-Object3D object3D{};
 Plane plane{};
 MouseInput mouse{};
 
@@ -143,8 +142,6 @@ void myMouse(int button, int state, int x, int y) {
 		}	
 	}
 }
-void motion(int x, int y) {
-}
 
 void  specialFunc(int key, int x, int y) {
 	if (key == GLUT_KEY_CTRL_L) {
@@ -178,15 +175,15 @@ void myDisplay(){
 	glUseProgram(program.GetID());
 
 
-	glBindVertexArray(object3D.m_vao);
+	glBindVertexArray(scene1.object3D.m_vao);
 	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
 	glViewport(0, 0, texWidth, texHeight);
 	//glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, object3D.m_texID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object3D.m_ebo);
+	glBindTexture(GL_TEXTURE_2D, scene1.object3D.m_texID);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene1.object3D.m_ebo);
 	
-	glDrawElements(GL_TRIANGLES, object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, scene1.object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 
 	/*glGenerateTextureMipmap(renderedTexture);
 
@@ -219,7 +216,7 @@ int main(int argc, char** argv) {
 
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
-	glutMotionFunc(motion);
+	//glutMotionFunc(motion);
 	glutSpecialFunc (specialFunc);
 
 	GLenum res = glewInit();
@@ -230,9 +227,8 @@ int main(int argc, char** argv) {
 	}
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
-	
 
-	scene1.setup(windowHeight, windowWidth, object3D, plane, program, skyboxProgram, cube);
+	scene1.setup(windowHeight, windowWidth, plane, program, skyboxProgram, cube);
 
 	glutDisplayFunc(myDisplay);
 	glutMainLoop();

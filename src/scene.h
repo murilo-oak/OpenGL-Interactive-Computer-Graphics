@@ -20,7 +20,7 @@ public:
 	bool m_setup{ false };
 
 	//virtual void setup() = 0;
-	virtual void setup(unsigned int windowHeight, unsigned int windowWidth, Object3D& object3D, Plane& plane, cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, Cubemap& cube) = 0;
+	virtual void setup(unsigned int windowHeight, unsigned int windowWidth, Plane& plane, cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, Cubemap& cube) = 0;
 	virtual void update() = 0;
 	virtual void render() = 0;
 	virtual void onRightButton(MouseInput mouse) = 0;
