@@ -1,14 +1,15 @@
 #pragma once
 #include "../ThirdParty/include/GL/glew.h"
 #include "../ThirdParty/include/GL/freeglut.h"
-#include"../cyCodeBase/cyGL.h"
+#include"../ThirdParty/include/cyCodeBase/cyGL.h"
+
 #include "camera.h"
 #include "cubemap.h"
 #include "object3D.h"
 #include "plane.h"
 #include "mouseinput.h"
 
-#include "../glm/glm.hpp"
+#include "../ThirdParty/include/glm/glm.hpp"
 #include "../ThirdParty/include/glm/gtc/matrix_transform.hpp"
 #include "../ThirdParty/include/glm/gtc/type_ptr.hpp"
 

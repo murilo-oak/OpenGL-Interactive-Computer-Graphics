@@ -171,10 +171,6 @@
     <ClInclude Include="src\object3D.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\cubemap.h" />
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyCore.h" />
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyGL.h" />
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyIVector.h" />
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyTriMesh.h" />
     <ClInclude Include="ThirdParty\include\lodepng\lodepng.h" />
   </ItemGroup>
   <ItemGroup>

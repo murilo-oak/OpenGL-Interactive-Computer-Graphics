@@ -1,7 +1,7 @@
 #pragma once
-#include "../glm/glm.hpp"
-#include "../glm/gtc/matrix_transform.hpp"
-#include "../glm/gtc/type_ptr.hpp"
+#include "../ThirdParty/include/glm/glm.hpp"
+#include "../ThirdParty/include/glm/gtc/matrix_transform.hpp"
+#include "../ThirdParty/include/glm/gtc/type_ptr.hpp"
 #include "../ThirdParty/include/GL/glew.h"
 #include "../ThirdParty/include/GL/freeglut.h"
 
