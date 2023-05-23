@@ -8,8 +8,11 @@
 class Camera
 {
 public:
-	
+	//position coordinates (x,y,z)
 	glm::vec3 m_position{};
+
+	//polar coordinates (angle1, angle2, r)
+	glm::vec2 m_angle{ 0.90f, 0.90f };
 	float m_radius = 3;
 	
 	glm::mat4 m_projection{};
@@ -28,13 +31,13 @@ public:
 		m_radius = radius;
 	}
 
-	void updatePosition(float viewAngleX, float viewAngleY, float deltaRadius = 0) {
+	void updatePosition(float deltaRadius = 0) {
 		m_radius += deltaRadius;
 
 		m_position = glm::vec3(
-			m_radius * sin(viewAngleY) * sin(viewAngleX),
-			m_radius * cos(viewAngleY),
-			m_radius * sin(viewAngleY) * cos(viewAngleX)
+			m_radius * sin(m_angle.y) * sin(m_angle.x),
+			m_radius * cos(m_angle.y),
+			m_radius * sin(m_angle.y) * cos(m_angle.x)
 		);
 	}
 
@@ -70,8 +73,8 @@ public:
 		updateMVP();
 	}
 
-	void update(float angleX, float angleY) {
-		updatePosition(angleX, angleY);
+	void update() {
+		updatePosition();
 		setViewMat();
 		updateMVP();
 	}
