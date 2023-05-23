@@ -44,8 +44,6 @@ cy::GLSLProgram program;
 cy::GLSLProgram skyboxProgram;
 
 Cubemap cube;
-
-Plane plane{};
 MouseInput mouse{};
 
 void myIdle() {
@@ -228,7 +226,7 @@ int main(int argc, char** argv) {
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 
-	scene1.setup(windowHeight, windowWidth, plane, program, skyboxProgram, cube);
+	scene1.setup(windowHeight, windowWidth, program, skyboxProgram, cube);
 
 	glutDisplayFunc(myDisplay);
 	glutMainLoop();
