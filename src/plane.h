@@ -54,8 +54,8 @@ public:
 		//normals
 		glCreateBuffers(1, &m_vboNormals);
 		glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
-		glNamedBufferStorage(m_vboNormals, m_normals.size() * sizeof(Object3D::normal), m_normals.data(), 0);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Object3D::normal), 0);
+		glNamedBufferStorage(m_vboNormals, m_normals.size() * sizeof(glm::vec3), m_normals.data(), 0);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
 		glEnableVertexAttribArray(2);//antes de renderizar
 
