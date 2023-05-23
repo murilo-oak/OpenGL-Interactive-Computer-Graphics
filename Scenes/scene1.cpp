@@ -2,7 +2,7 @@
 
 
 void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth,
-	Object3D& object3D, Plane& plane, cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, glm::vec3& lightDir) {
+		Plane& plane, cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, glm::vec3& lightDir) {
 	glUseProgram(programID);
 
 	GLint sampler{};
@@ -38,7 +38,7 @@ void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, un
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
 }
 
-void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, Object3D &object3D, Plane &plane, cy::GLSLProgram &program, cy::GLSLProgram &skyboxProgram, Cubemap& cube) {
+void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, Plane &plane, cy::GLSLProgram &program, cy::GLSLProgram &skyboxProgram, Cubemap& cube) {
 	cube.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
 		"cubemap/cubemap_negx.png",
@@ -71,7 +71,7 @@ void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, Object3
 
 	cube.set();
 
-	setUniformVariables(program.GetID(), windowHeight, windowWidth, object3D, plane, program, skyboxProgram, lightDir);
+	setUniformVariables(program.GetID(), windowHeight, windowWidth, plane, program, skyboxProgram, lightDir);
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
@@ -81,7 +81,7 @@ void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, Object3
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-	setUniformVariables(skyboxProgram.GetID(), windowHeight, windowWidth, object3D, plane, program, skyboxProgram, lightDir);
+	setUniformVariables(skyboxProgram.GetID(), windowHeight, windowWidth, plane, program, skyboxProgram, lightDir);
 };
 
 void Scene1::update() 
