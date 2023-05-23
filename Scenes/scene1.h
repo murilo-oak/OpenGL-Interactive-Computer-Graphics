@@ -12,9 +12,6 @@ public:
 	cy::GLSLProgram m_objectProgram{};
 	cy::GLSLProgram m_skyboxProgram{};
 
-	float angleX{ 0.90f };
-	float angleY{ 0.90f };
-
 	glm::vec3 lightDir{ 0.0f, 1.0f, 0.0f };
 	unsigned int m_windowHeight{}, m_windowWidth{};
 

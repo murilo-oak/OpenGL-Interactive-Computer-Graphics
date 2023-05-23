@@ -50,7 +50,7 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 		"cubemap/cubemap_negz.png"
 	);
 
-	m_cam.updatePosition(angleX, angleY);
+	m_cam.updatePosition();
 	m_cam.setMVP(windowWidth, windowHeight);
 
 	m_object3D.loadFromFile("teapot.obj");
@@ -88,7 +88,7 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 
 void Scene1::update() 
 {
-	m_cam.update(angleX, angleY);
+	m_cam.update();
 };
 
 void Scene1::render() 
@@ -144,8 +144,8 @@ void Scene1::render()
 };
 
 void Scene1::onRightButton(MouseInput mouse) {
-	angleY += (mouse.getY() - mouse.getLastY()) / 400.0f;
-	angleX += (mouse.getX() - mouse.getLastX()) / 400.0f;
+	m_cam.m_angle.x += (mouse.getX() - mouse.getLastX()) / 400.0f;
+	m_cam.m_angle.y += (mouse.getY() - mouse.getLastY()) / 400.0f;
 
 	updateUniformVariables(m_objectProgram.GetID());
 	updateUniformVariables(m_skyboxProgram.GetID());
@@ -153,7 +153,7 @@ void Scene1::onRightButton(MouseInput mouse) {
 
 void Scene1::onLeftButton(MouseInput mouse)
 {
-	m_cam.updatePosition(angleX, angleY, ((mouse.getY() - mouse.getLastY()) / 40.0f));
+	m_cam.updatePosition(((mouse.getY() - mouse.getLastY()) / 40.0f));
 
 	updateUniformVariables(m_objectProgram.GetID());
 	updateUniformVariables(m_skyboxProgram.GetID());
