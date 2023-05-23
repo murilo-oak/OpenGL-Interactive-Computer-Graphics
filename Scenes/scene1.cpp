@@ -39,6 +39,9 @@ void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, un
 }
 
 void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
+	m_windowWidth = windowWidth;
+	m_windowHeight = windowHeight;
+
 	cube.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
 		"cubemap/cubemap_negx.png",
@@ -89,7 +92,57 @@ void Scene1::update()
 	cam.update(angleX, angleY);
 };
 
-void Scene1::render() {};
+void Scene1::render() 
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, m_windowWidth, m_windowHeight);
+	glUseProgram(skyboxProgram.GetID());
+
+	glDepthMask(GL_FALSE);
+	glBindVertexArray(cube.m_vao);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cube.texCubeID);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDepthMask(GL_TRUE);
+
+	glEnable(GL_DEPTH_TEST);
+
+
+	glUseProgram(program.GetID());
+
+
+	glBindVertexArray(object3D.m_vao);
+	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	glViewport(0, 0, object3D.m_texWidth, object3D.m_texHeight);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, object3D.m_texID);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object3D.m_ebo);
+
+	glDrawElements(GL_TRIANGLES, object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
+
+	/*glGenerateTextureMipmap(renderedTexture);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, windowWidth, windowHeight);
+	glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glBindVertexArray(vaoPlane);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderedTexture);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
+
+
+	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
+	glutSwapBuffers();
+};
 
 void Scene1::onRightButton(MouseInput mouse) {
 	angleY += (mouse.getY() - mouse.getLastY()) / 400.0f;
