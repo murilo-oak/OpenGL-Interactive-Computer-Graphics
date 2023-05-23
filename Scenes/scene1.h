@@ -12,7 +12,7 @@ public:
 	cy::GLSLProgram m_objectProgram{};
 	cy::GLSLProgram m_skyboxProgram{};
 
-	glm::vec3 lightDir{ 0.0f, 1.0f, 0.0f };
+	glm::vec3 m_lightDir{ 0.0f, 1.0f, 0.0f };
 	unsigned int m_windowHeight{}, m_windowWidth{};
 
 	void setup(unsigned int windowHeight, unsigned int windowWidth) override;
