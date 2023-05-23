@@ -4,14 +4,13 @@
 class Scene1 : public IScene
 {
 public:
-	Camera cam{};
-	Object3D object3D{};
-	Plane plane{};
+	Camera   m_cam{};
+	Object3D m_object3D{};
+	Plane    m_plane{};
+	Cubemap  m_cubemap{};
 
-	Cubemap cube{};
-
-	cy::GLSLProgram program{};
-	cy::GLSLProgram skyboxProgram{};
+	cy::GLSLProgram m_objectProgram{};
+	cy::GLSLProgram m_skyboxProgram{};
 
 	float angleX{ 0.90f };
 	float angleY{ 0.90f };
@@ -24,10 +23,10 @@ public:
 	void render() override;
 
 	void onRightButton(MouseInput mouse) override;
-	void onLeftButton(MouseInput mouse) override;
+	void onLeftButton (MouseInput mouse) override;
 	void onLeftButton2(MouseInput mouse) override;
 
-	void setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth);
+	void setUniformVariables   (GLuint programID, unsigned int windowHeight, unsigned int windowWidth);
 	void updateLightCamUniforms(GLuint programID);
 	void updateUniformVariables(GLuint programID);
 };
