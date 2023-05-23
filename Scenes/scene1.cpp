@@ -38,7 +38,7 @@ void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, un
 	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
 }
 
-void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, Cubemap& cube) {
+void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	cube.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
 		"cubemap/cubemap_negx.png",
