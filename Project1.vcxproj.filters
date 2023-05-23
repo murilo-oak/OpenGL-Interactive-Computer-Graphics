@@ -18,7 +18,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="lodepng\lodepng.cpp">
+    <ClCompile Include="ThirdParty\include\lodepng\lodepng.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="src\cubemap.cpp">
@@ -44,19 +44,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cyCodeBase\cyIVector.h">
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyIVector.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cyCodeBase\cyTriMesh.h">
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyTriMesh.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cyCodeBase\cyCore.h">
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyCore.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cyCodeBase\cyGL.h">
+    <ClInclude Include="ThirdParty\include\cyCodeBase\cyGL.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="lodepng\lodepng.h">
+    <ClInclude Include="ThirdParty\include\lodepng\lodepng.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="src\cubemap.h">

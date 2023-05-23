@@ -4,9 +4,9 @@
 #include <algorithm>
 #include "../ThirdParty/include/GL/glew.h"
 #include "../ThirdParty/include/GL/freeglut.h"
-#include "../lodepng/lodepng.h"
-#include "../cyCodeBase/cyTriMesh.h"
-#include "../glm/glm.hpp"
+#include "../ThirdParty/include/lodepng/lodepng.h"
+#include "../ThirdParty/include/cyCodeBase/cyTriMesh.h"
+#include "../ThirdParty/include/glm/glm.hpp"
 
 class Object3D
 {
