@@ -147,11 +147,17 @@ void Scene1::render()
 void Scene1::onRightButton(MouseInput mouse) {
 	angleY += (mouse.getY() - mouse.getLastY()) / 400.0f;
 	angleX += (mouse.getX() - mouse.getLastX()) / 400.0f;
+
+	updateUniformVariables(program.GetID());
+	updateUniformVariables(skyboxProgram.GetID());
 };
 
 void Scene1::onLeftButton(MouseInput mouse)
 {
 	cam.updatePosition(angleX, angleY, ((mouse.getY() - mouse.getLastY()) / 40.0f));
+
+	updateUniformVariables(program.GetID());
+	updateUniformVariables(skyboxProgram.GetID());
 };
 
 void Scene1::onLeftButton2(MouseInput mouse)
@@ -160,4 +166,41 @@ void Scene1::onLeftButton2(MouseInput mouse)
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), (mouse.getY() - mouse.getLastY()) / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 	glm::vec4 newLightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(lightDir), 1.0f);
 	lightDir = newLightDir;
+
+	updateLightCamUniforms(program.GetID());
 };
+
+void Scene1::updateLightCamUniforms(GLuint programID) {
+	glUseProgram(programID);
+
+	GLint uniformTransLoc = glGetUniformLocation(programID, "cameraPos");
+	glUniform3fv(uniformTransLoc, 1, &cam.m_position[0]);
+
+	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
+	glUniform3fv(uniformLightDir, 1, &lightDir[0]);
+}
+
+void Scene1::updateUniformVariables(GLuint programID) {
+	glUseProgram(programID);
+
+	if (programID == skyboxProgram.GetID()) {
+		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(cam.m_projection * glm::mat4(glm::mat3(cam.m_view))));
+	}
+
+	if (programID == program.GetID()) {
+		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(cam.m_mvp));
+	}
+
+	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
+	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(cam.m_mv));
+
+	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(cam.m_mv4));
+
+	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
+	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(cam.m_invMv4));
+
+	updateLightCamUniforms(programID);
+}
