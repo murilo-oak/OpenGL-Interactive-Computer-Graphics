@@ -2,7 +2,7 @@
 
 
 void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth,
-		cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram, glm::vec3& lightDir) {
+		cy::GLSLProgram& program, cy::GLSLProgram& skyboxProgram) {
 	glUseProgram(programID);
 
 	GLint sampler{};
@@ -71,7 +71,7 @@ void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, cy::GLS
 
 	cube.set();
 
-	setUniformVariables(program.GetID(), windowHeight, windowWidth, program, skyboxProgram, lightDir);
+	setUniformVariables(program.GetID(), windowHeight, windowWidth, program, skyboxProgram);
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
@@ -81,7 +81,7 @@ void Scene1::setup( unsigned int windowHeight, unsigned int windowWidth, cy::GLS
 	skyboxProgram.AttachShader(vertexS);
 	skyboxProgram.Link();
 
-	setUniformVariables(skyboxProgram.GetID(), windowHeight, windowWidth, program, skyboxProgram, lightDir);
+	setUniformVariables(skyboxProgram.GetID(), windowHeight, windowWidth, program, skyboxProgram);
 };
 
 void Scene1::update() 
