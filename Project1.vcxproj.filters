@@ -44,18 +44,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyIVector.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyTriMesh.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyCore.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="ThirdParty\include\cyCodeBase\cyGL.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="ThirdParty\include\lodepng\lodepng.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
