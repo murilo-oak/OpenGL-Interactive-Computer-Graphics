@@ -16,5 +16,8 @@ public:
 
 	int getLastX() const { return m_lastX; }
 	int getLastY() const { return m_lastY; }
+
+	int getDeltaX() const { return m_x - m_lastX; }
+	int getDeltaY() const { return m_y - m_lastY; }
 };
 

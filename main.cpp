@@ -3,17 +3,17 @@
 #include <algorithm>
 
 #define GLEW_STATIC
-#include "GL/glew.h"
-#include <GL/freeglut.h>
+#include "ThirdParty/include/GL/glew.h"
+#include "ThirdParty/include/GL/freeglut.h"
 
-#include "cyCodeBase/cyTriMesh.h"
-#include "cyCodeBase/cyGL.h"
+#include "ThirdParty/include/cyCodeBase/cyTriMesh.h"
+#include "ThirdParty/include/cyCodeBase/cyGL.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "ThirdParty/include/glm/glm.hpp"
+#include "ThirdParty/include/glm/gtc/matrix_transform.hpp"
+#include "ThirdParty/include/glm/gtc/type_ptr.hpp"
 
-#include "lodepng/lodepng.h"
+#include "ThirdParty/include/lodepng/lodepng.h"
 #include "src/mouseinput.h"
 
 #include "Scenes/scene1.h"

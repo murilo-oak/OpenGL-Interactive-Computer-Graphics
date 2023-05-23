@@ -24,7 +24,6 @@ public:
 	void onLeftButton2(MouseInput mouse) override;
 
 	void setUniformVariables   (GLuint programID, unsigned int windowHeight, unsigned int windowWidth);
-	void updateLightCamUniforms(GLuint programID);
 	void updateUniformVariables(GLuint programID);
 };
 
