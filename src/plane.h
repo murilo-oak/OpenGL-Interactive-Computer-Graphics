@@ -11,18 +11,18 @@ public:
     void generateBuffers(){
 		m_vertices = {
 			// positions          // colors           
-			{13.5f,  13.5f, 0.0f,   1.0f, 0.0f, 0.0f},   // top right
-			{13.5f, -13.5f, 0.0f,   0.0f, 1.0f, 0.0f },   // bottom right
-			{-13.5f, -13.5f, 0.0f,   0.0f, 0.0f, 1.0f},   // bottom left
-			{-13.5f,  13.5f, 0.0f,   1.0f, 1.0f, 0.0f}   // top left 
+			{20.0f,  0, 20.0f,   1.0f, 0.0f, 0.0f},   // top right
+			{20.0f, 0, -20.0f,   0.0f, 1.0f, 0.0f },   // bottom right
+			{-20.0f, 0, -20.0f,   0.0f, 0.0f, 1.0f},   // bottom left
+			{-20.0f,  0, 20.0f,   1.0f, 1.0f, 0.0f}   // top left 
 		};
 
 		m_normals = {
 			// positions                     
-			{0.0f, 0.0f, 1.0f},   // top right
-			{0.0f, 0.0f, 1.0f },   // bottom right
-			{0.0f, 0.0f, 1.0f},   // bottom left
-			{0.0f, 0.0f, 1.0f}   // top left 
+			{0.0f, 1.0f, 0.0f},   // top right
+			{0.0f, 1.0f, 0.0f },   // bottom right
+			{0.0f, 1.0f, 0.0f},   // bottom left
+			{0.0f, 1.0f, 0.0f}   // top left 
 		};
 
 		m_texCoords = {

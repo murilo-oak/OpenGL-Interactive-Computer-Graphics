@@ -1,11 +1,9 @@
-# Blender MTL File: 'None'
-# Material Count: 1
+# Blender 3.5.0 MTL File: 'None'
+# www.blender.org
 
 newmtl default
-Ns 20.000005
+Ns 20.000006
 Ka 1.000000 1.000000 1.000000
-Kd 0.509804 0.000000 0.000000
-Ks 0.801000 0.801000 0.801000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000

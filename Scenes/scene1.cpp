@@ -117,28 +117,45 @@ void Scene1::render()
 
 
 	glBindVertexArray(m_object3D.m_vao);
-	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
+	
+	/// <summary>
+	/// 
+	/// </summary>
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_object3D.m_frameBuffer);
+	/// <summary>
+	/// 
+	/// </summary>
+	
 	glViewport(0, 0, m_object3D.m_texWidth, m_object3D.m_texHeight);
+	
+	/// <summary>
+	/// ////
+	/// </summary>
 	//glClear(GL_DEPTH_BUFFER_BIT);
+	////////
+
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_object3D.m_texID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_object3D.m_ebo);
 
 	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 
-	/*glGenerateTextureMipmap(renderedTexture);
-
+	/// <summary>
+	/// //////////////
+	/// </summary>
+	glGenerateTextureMipmap(m_plane.m_renderedTexture);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, windowWidth, windowHeight);
-	glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, m_windowWidth, m_windowHeight);
+	//glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBindVertexArray(vaoPlane);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPlane);
+	glBindVertexArray(m_plane.m_vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
-
+	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	////////////////////////////////////////
 
 	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
 	glutSwapBuffers();

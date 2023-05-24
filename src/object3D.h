@@ -28,7 +28,7 @@ public:
 	std::vector<unsigned int> m_facesIndex{};
 
 	GLuint m_texID{};
-	unsigned int m_texWidth{}, m_texHeight{};
+	unsigned int m_texWidth{500}, m_texHeight{500};
 
 	lodepng::State m_state{};
 	std::vector<unsigned char> m_png{};
