@@ -1,42 +1,5 @@
 #include "scene1.h"
 
-void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth) 
-{
-	glUseProgram(programID);
-
-	GLint sampler{};
-	sampler = glGetUniformLocation(programID, "skybox");
-	glUniform1i(sampler, 0);
-
-	sampler = glGetUniformLocation(programID, "tex");
-	glUniform1i(sampler, 0);
-
-	if (programID == m_skyboxProgram.GetID()) {
-		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(m_cam.m_projection * glm::mat4(glm::mat3(m_cam.m_view))));
-	}
-
-	if (programID == m_objectProgram.GetID()) {
-		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
-		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(m_cam.m_mvp));
-	}
-
-	GLint uniformLocmv = glGetUniformLocation(programID, "mv3");
-	glUniformMatrix3fv(uniformLocmv, 1, GL_FALSE, glm::value_ptr(m_cam.m_mv));
-
-	GLint uniformLocmv4 = glGetUniformLocation(programID, "mv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(m_cam.m_mv4));
-
-	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
-	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(m_cam.m_invMv4));
-
-	GLint uniformTransLoc = glGetUniformLocation(m_objectProgram.GetID(), "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &m_cam.m_position[0]);
-
-	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
-	glUniform3fv(uniformLightDir, 1, &m_lightDir[0]);
-}
-
 void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_windowWidth = windowWidth;
 	m_windowHeight = windowHeight;
@@ -97,6 +60,7 @@ void Scene1::render()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+	
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -117,22 +81,8 @@ void Scene1::render()
 
 
 	glBindVertexArray(m_object3D.m_vao);
-	
-	/// <summary>
-	/// 
-	/// </summary>
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_object3D.m_frameBuffer);
-	/// <summary>
-	/// 
-	/// </summary>
-	
 	glViewport(0, 0, m_object3D.m_texWidth, m_object3D.m_texHeight);
-	
-	/// <summary>
-	/// ////
-	/// </summary>
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	////////
 
 
 	glActiveTexture(GL_TEXTURE0);
@@ -141,23 +91,16 @@ void Scene1::render()
 
 	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 
-	/// <summary>
-	/// //////////////
-	/// </summary>
 	glGenerateTextureMipmap(m_plane.m_renderedTexture);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
-	//glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(m_plane.m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	////////////////////////////////////////
 
-	//glDrawArrays(GL_POINTS, 0, objectVertices.size());
 	glutSwapBuffers();
 };
 
@@ -178,6 +121,20 @@ void Scene1::onLeftButton2(MouseInput mouse)
 	
 	m_lightDir = rotationMatrixX * rotationMatrixY * glm::vec4(glm::vec3(m_lightDir), 1.0f);
 };
+
+void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, unsigned int windowWidth)
+{
+	glUseProgram(programID);
+
+	GLint sampler{};
+	sampler = glGetUniformLocation(programID, "skybox");
+	glUniform1i(sampler, 0);
+
+	sampler = glGetUniformLocation(programID, "tex");
+	glUniform1i(sampler, 0);
+
+	updateUniformVariables(programID);
+}
 
 void Scene1::updateUniformVariables(GLuint programID) {
 	glUseProgram(programID);
@@ -201,9 +158,10 @@ void Scene1::updateUniformVariables(GLuint programID) {
 	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(m_cam.m_invMv4));
 
-	GLint uniformTransLoc = glGetUniformLocation(programID, "cameraPos");
-	glUniform3fv(uniformTransLoc, 1, &m_cam.m_position[0]);
-
+	if (programID == m_objectProgram.GetID()) {
+		GLint uniformTransLoc = glGetUniformLocation(m_objectProgram.GetID(), "cameraPos");
+		glUniform3fv(uniformTransLoc, 1, &m_cam.m_position[0]);
+	}
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
 	glUniform3fv(uniformLightDir, 1, &m_lightDir[0]);
 }
