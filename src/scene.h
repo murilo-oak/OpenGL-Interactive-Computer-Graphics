@@ -27,5 +27,6 @@ public:
 	virtual void onRightButton(MouseInput mouse) = 0;
 	virtual void onLeftButton(MouseInput mouse) = 0;
 	virtual void onLeftButton2(MouseInput mouse) = 0;
+	virtual void recompileShaders() = 0;
 };
 

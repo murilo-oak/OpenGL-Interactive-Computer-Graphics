@@ -37,6 +37,14 @@ void myKeyboard(unsigned char key, int x, int y) {
 		case 27:
 			glutLeaveMainLoop();
 			break;
+		case 'r':
+			std::cout << "recompile" << std::endl;
+			scene1.recompileShaders();
+			break;
+		case 'R':
+			std::cout << "recompile" << std::endl;
+			scene1.recompileShaders();
+			break;
 	}
 	glutPostRedisplay();
 }

@@ -165,3 +165,26 @@ void Scene1::updateUniformVariables(GLuint programID) {
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
 	glUniform3fv(uniformLightDir, 1, &m_lightDir[0]);
 }
+
+void Scene1::recompileShaders() 
+{
+	cy::GLSLShader vertexS;
+	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
+
+	cy::GLSLShader fragmentS;
+	fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
+	//fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+
+	m_objectProgram.CreateProgram();
+	m_objectProgram.AttachShader(fragmentS);
+	m_objectProgram.AttachShader(vertexS);
+	m_objectProgram.Link();
+
+	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
+	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
+
+	m_skyboxProgram.CreateProgram();
+	m_skyboxProgram.AttachShader(fragmentS);
+	m_skyboxProgram.AttachShader(vertexS);
+	m_skyboxProgram.Link();
+}
