@@ -22,15 +22,16 @@ float difuseLight( vec3 normalSurface, vec3 lightDir){
 	return max(0, dot(normalSurface, lightDir));
 }
 void main() {
+	vec3 I = pos.xyz * 0.05 - cameraPos;
+	vec3 camDir = I;
 	
-	vec3 camDir = normalize(mv3 * pos.xyz);
 	vec3 normalN = normalize(normal);
 	vec3 halfVec = normalize((camDir + lightD)/2);
 	
 	float specular = dot(normalN, halfVec);
 	float difuse = difuseLight(normalN, lightD);
 	
-	vec3 I = pos.xyz * 0.05 - cameraPos;
+
 	vec3 N = normalObject;
 
 	ocolor = 0.9 * texture(skybox, reflect(I, N)) + 0.3* (difuse + ceil(difuse) * pow(specular, 1500));;
