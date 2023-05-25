@@ -23,8 +23,10 @@ void main() {
 	lightD = mv3 * lightDir;
 	color = vec4(icolor,1);
 	pos = vec4(iposition, 1);
+	
 	normalObject = inormal;
 	normal = mv3 * inormal;
+	
 	texCoord = txc;
 	gl_Position =  mvp * vec4(iposition * 0.05, 1);
 }

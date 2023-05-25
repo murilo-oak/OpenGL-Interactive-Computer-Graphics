@@ -25,5 +25,7 @@ public:
 
 	void setUniformVariables   (GLuint programID, unsigned int windowHeight, unsigned int windowWidth);
 	void updateUniformVariables(GLuint programID);
+	
+	void recompileShaders() override;
 };
 
