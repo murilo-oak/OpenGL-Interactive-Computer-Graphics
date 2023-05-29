@@ -10,6 +10,7 @@ public:
 	Cubemap  m_cubemap{};
 
 	cy::GLSLProgram m_objectProgram{};
+	cy::GLSLProgram m_planeProgram{};
 	cy::GLSLProgram m_skyboxProgram{};
 
 	glm::vec3 m_lightDir{ 0.0f, 1.0f, 0.0f };
