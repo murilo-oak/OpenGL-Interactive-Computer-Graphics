@@ -46,6 +46,17 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_skyboxProgram.Link();
 
 	setUniformVariables(m_skyboxProgram.GetID(), windowHeight, windowWidth);
+
+	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
+	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+
+	m_planeProgram.CreateProgram();
+	m_planeProgram.AttachShader(fragmentS);
+	m_planeProgram.AttachShader(vertexS);
+	m_planeProgram.Link();
+
+	setUniformVariables(m_planeProgram.GetID(), windowHeight, windowWidth);
+
 };
 
 void Scene1::update() 
@@ -53,6 +64,7 @@ void Scene1::update()
 	m_cam.update();
 	updateUniformVariables(m_objectProgram.GetID());
 	updateUniformVariables(m_skyboxProgram.GetID());
+	updateUniformVariables(m_planeProgram.GetID());
 };
 
 void Scene1::render() 
@@ -71,34 +83,75 @@ void Scene1::render()
 	glDepthMask(GL_FALSE);
 	glBindVertexArray(m_cubemap.m_vao);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.texCubeID);
+	//draw cubemap
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
 
-	glEnable(GL_DEPTH_TEST);
 
+	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(m_objectProgram.GetID());
 
-
 	glBindVertexArray(m_object3D.m_vao);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_object3D.m_frameBuffer);
 	glViewport(0, 0, m_object3D.m_texWidth, m_object3D.m_texHeight);
-
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_object3D.m_texID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_object3D.m_ebo);
 
+	//drawobject
 	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 
-	glGenerateTextureMipmap(m_plane.m_renderedTexture);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, m_windowWidth, m_windowHeight);
+	//glGenerateTextureMipmap(m_plane.m_renderedTexture);
 
+	glUseProgram(m_objectProgram.GetID());
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(m_plane.m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
 	glActiveTexture(GL_TEXTURE0);
+
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_plane.m_frameBuffer);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	
+	glViewport(0, 0, m_windowWidth, m_windowHeight);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glBindVertexArray(m_object3D.m_vao);
+	
+	glUseProgram(m_objectProgram.GetID());
+	
+	glm::mat4 view = glm::lookAt(
+		glm::reflect(m_cam.m_position, glm::vec3(0, 1, 0)),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	);
+
+	glm::mat4 mvp = m_cam.m_projection * m_cam.m_model * view;
+
+	GLint uniformLoc = glGetUniformLocation(m_objectProgram.GetID(), "mvp");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+	
+	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
+	//glGenerateMipmap(m_plane.m_renderedTexture);
+	
+	//glUseProgram(m_objectProgram.GetID());
+	//glDepthMask(GL_FALSE);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	//glDepthMask(GL_TRUE);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(m_planeProgram.GetID());
+	glBindVertexArray(m_plane.m_vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
+	glActiveTexture(GL_TEXTURE0);
+	
+	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
+	//drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glutSwapBuffers();
@@ -143,8 +196,7 @@ void Scene1::updateUniformVariables(GLuint programID) {
 		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
 		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(m_cam.m_projection * glm::mat4(glm::mat3(m_cam.m_view))));
 	}
-
-	if (programID == m_objectProgram.GetID()) {
+	else {
 		GLint uniformLoc = glGetUniformLocation(programID, "mvp");
 		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(m_cam.m_mvp));
 	}
@@ -158,8 +210,8 @@ void Scene1::updateUniformVariables(GLuint programID) {
 	uniformLocmv4 = glGetUniformLocation(programID, "invMv4");
 	glUniformMatrix4fv(uniformLocmv4, 1, GL_FALSE, glm::value_ptr(m_cam.m_invMv4));
 
-	if (programID == m_objectProgram.GetID()) {
-		GLint uniformTransLoc = glGetUniformLocation(m_objectProgram.GetID(), "cameraPos");
+	if (programID == m_objectProgram.GetID() || programID ==m_planeProgram.GetID()) {
+		GLint uniformTransLoc = glGetUniformLocation(programID, "cameraPos");
 		glUniform3fv(uniformTransLoc, 1, &m_cam.m_position[0]);
 	}
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
@@ -187,4 +239,13 @@ void Scene1::recompileShaders()
 	m_skyboxProgram.AttachShader(fragmentS);
 	m_skyboxProgram.AttachShader(vertexS);
 	m_skyboxProgram.Link();
+
+	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
+	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+	//fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
+
+	m_planeProgram.CreateProgram();
+	m_planeProgram.AttachShader(fragmentS);
+	m_planeProgram.AttachShader(vertexS);
+	m_planeProgram.Link();
 }
