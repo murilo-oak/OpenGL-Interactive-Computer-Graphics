@@ -23,8 +23,7 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
 	cy::GLSLShader fragmentS;
-	fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
-	//fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+	fragmentS.CompileFile("Shaders/reflecting_object_surface.frag", GL_FRAGMENT_SHADER);
 
 	m_objectProgram.CreateProgram();
 	m_objectProgram.AttachShader(fragmentS);
@@ -48,7 +47,7 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	setUniformVariables(m_skyboxProgram.GetID(), windowHeight, windowWidth);
 
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
-	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+	fragmentS.CompileFile("Shaders/reflecting_plane_surface.frag", GL_FRAGMENT_SHADER);
 
 	m_planeProgram.CreateProgram();
 	m_planeProgram.AttachShader(fragmentS);
@@ -83,6 +82,7 @@ void Scene1::render()
 	glDepthMask(GL_FALSE);
 	glBindVertexArray(m_cubemap.m_vao);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.texCubeID);
+	
 	//draw cubemap
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
@@ -114,38 +114,35 @@ void Scene1::render()
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_plane.m_frameBuffer);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	
-	glViewport(0, 0, m_windowWidth, m_windowHeight);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, m_windowWidth, m_windowHeight);
 
-	glBindVertexArray(m_object3D.m_vao);
-	
-	glUseProgram(m_objectProgram.GetID());
-	
-	glm::mat4 view = glm::lookAt(
-		glm::reflect(m_cam.m_position, glm::vec3(0, 1, 0)),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
+	bool camCanSeeObject = glm::dot(m_cam.m_position, glm::vec3(0, 1, 0)) > 0;
 
-	glm::mat4 mvp = m_cam.m_projection * m_cam.m_model * view;
+	if (camCanSeeObject) {
+		glUseProgram(m_objectProgram.GetID());
+		glBindVertexArray(m_object3D.m_vao);
 
-	GLint uniformLoc = glGetUniformLocation(m_objectProgram.GetID(), "mvp");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-	
-	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
-	//glGenerateMipmap(m_plane.m_renderedTexture);
-	
-	//glUseProgram(m_objectProgram.GetID());
-	//glDepthMask(GL_FALSE);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	//glDepthMask(GL_TRUE);
+		glm::mat4 view = glm::lookAt(
+			glm::reflect(m_cam.m_position, glm::vec3(0, 1, 0)),
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		);
+
+		glm::mat4 mvp = m_cam.m_projection * m_cam.m_model * view;
+
+		GLint uniformLoc = glGetUniformLocation(m_objectProgram.GetID(), "mvp");
+		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+		glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
+	}
+	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	glUseProgram(m_planeProgram.GetID());
+
 	glBindVertexArray(m_plane.m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
 	glActiveTexture(GL_TEXTURE0);
@@ -153,7 +150,6 @@ void Scene1::render()
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 	//drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
 	glutSwapBuffers();
 };
 
@@ -216,6 +212,9 @@ void Scene1::updateUniformVariables(GLuint programID) {
 	}
 	GLint uniformLightDir = glGetUniformLocation(programID, "lightDir");
 	glUniform3fv(uniformLightDir, 1, &m_lightDir[0]);
+
+	GLuint uniformWindowSize = glGetUniformLocation(programID, "windowSize");
+	glUniform2fv(uniformWindowSize, 1, glm::value_ptr(glm::vec2(m_windowWidth, m_windowHeight)));
 }
 
 void Scene1::recompileShaders() 
@@ -224,8 +223,7 @@ void Scene1::recompileShaders()
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
 	cy::GLSLShader fragmentS;
-	fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
-	//fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
+	fragmentS.CompileFile("Shaders/reflecting_object_surface.frag", GL_FRAGMENT_SHADER);
 
 	m_objectProgram.CreateProgram();
 	m_objectProgram.AttachShader(fragmentS);
@@ -241,8 +239,7 @@ void Scene1::recompileShaders()
 	m_skyboxProgram.Link();
 
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
-	fragmentS.CompileFile("Shaders/Blinn_shading.frag", GL_FRAGMENT_SHADER);
-	//fragmentS.CompileFile("Shaders/reflecting_surface.frag", GL_FRAGMENT_SHADER);
+	fragmentS.CompileFile("Shaders/reflecting_plane_surface.frag", GL_FRAGMENT_SHADER);
 
 	m_planeProgram.CreateProgram();
 	m_planeProgram.AttachShader(fragmentS);

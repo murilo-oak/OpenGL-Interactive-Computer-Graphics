@@ -174,8 +174,8 @@
     <ClInclude Include="ThirdParty\include\lodepng\lodepng.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\reflecting_surface.frag" />
-    <None Include="Shaders\Blinn_shading.frag" />
+    <None Include="Shaders\reflecting_object_surface.frag" />
+    <None Include="Shaders\reflecting_plane_surface.frag" />
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\fragmentcube.frag" />
     <None Include="Shaders\vertex.vert" />
