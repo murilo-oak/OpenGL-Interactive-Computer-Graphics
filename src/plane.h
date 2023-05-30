@@ -26,10 +26,10 @@ public:
 		};
 
 		m_texCoords = {
+			{0.0f, 0.0f},   // bottom right  // bottom left
+			{0.0f, 1.0f},    // top left
 			{1.0f, 1.0f},   // top right
-			{1.0f, 0.0f },   // bottom right
-			{0.0f, 0.0f},   // bottom left
-			{0.0f, 1.0f}    // top left 
+			{1.0f, 0.0f },
 		};
 
 		m_facesIndex = {
@@ -81,9 +81,9 @@ public:
 		//renderedTexture
 		glGenTextures(1, &m_renderedTexture);
 		glBindTexture(GL_TEXTURE_2D, m_renderedTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_texWidth, m_texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texWidth, m_texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		//depth buffer

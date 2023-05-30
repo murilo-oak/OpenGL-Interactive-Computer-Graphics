@@ -34,5 +34,6 @@ void main() {
 
 	vec3 N = normalObject;
 
-	ocolor = 0.9 * texture(skybox, reflect(I, N)) + 0.3 * (difuse + ceil(difuse) * pow(specular, 1500));;
+	ocolor = 0.8 * texture(skybox, reflect(I, N)) + 0.5 * (difuse + ceil(difuse) * pow(specular, 1000));
+
 }
