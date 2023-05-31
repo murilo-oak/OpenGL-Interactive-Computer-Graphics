@@ -13,11 +13,6 @@ uniform samplerCube skybox;
 
 uniform vec3 cameraPos;
 
-uniform mat3 mv3;
-uniform mat4 mv4;
-uniform mat4 invMv4;
-
-
 float difuseLight( vec3 normalSurface, vec3 lightDir){
 	return max(0, dot(normalSurface, lightDir));
 }
@@ -34,6 +29,6 @@ void main() {
 
 	vec3 N = normalObject;
 
-	ocolor = 0.8 * texture(skybox, reflect(I, N)) + 0.5 * (difuse + ceil(difuse) * pow(specular, 1000));
+	ocolor = 0.9 * texture(skybox, reflect(I, N)) + 0.5 * (difuse + ceil(difuse) * pow(specular, 1000));
 
 }
