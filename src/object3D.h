@@ -2,6 +2,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
+#include <unordered_map>
+#include <list>
 #include "../ThirdParty/include/GL/glew.h"
 #include "../ThirdParty/include/GL/freeglut.h"
 #include "../ThirdParty/include/lodepng/lodepng.h"
@@ -126,172 +129,119 @@ private:
 			if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
 		}
 
+		//generateBuffers(mesh);
 		generateBuffers(mesh);
 	}
-	void generateBuffers(cy::TriMesh mesh) {
-		//vector of vertices
-		int n = mesh.NV();
-		for (int i = 0; i < n; i++) {
-			m_vertices.push_back({ mesh.V(i).x, mesh.V(i).y, mesh.V(i).z, 1.0f, 0.0f , 0.3f });
+	
+	struct IntPairHash {
+		std::size_t operator()(const std::pair<uint32_t, uint32_t>& p) const {
+			assert(sizeof(std::size_t) >= 8);  //Ensure that std::size_t, the type of the hash, is large enough
+			//Shift first integer over to make room for the second integer. The two are
+			//then packed side by side.
+			return (((uint64_t)p.first) << 32) | ((uint64_t)p.second);
 		}
+	};
+
+	struct somethub {
+		int normalIndex;
+		int texCoordIndex;
+	};
+
+	void generateBuffers(cy::TriMesh mesh) {
+		std::unordered_multimap<int, std::tuple<int, int, int>> hashmapVertexIndices;
+		std::unordered_map<int, std::tuple<int, int, int>> hashmapUniqueVertexIndices;
+		std::unordered_map<int, int> hashmapFacesIndices;
+
+		//vector of vertices
+		int n_vertices = mesh.NV();
 
 		int nf = mesh.NF();
+		int indexFace = 0;
+		for (int i = 0; i < nf; i++) {
+			for (int k = 0; k < 3; k++) {
+				int vertexIndex = mesh.F(i).v[k];
+				int normalIndex = mesh.FN(i).v[k];
+				int textureIndex = mesh.FT(i).v[k];
+
+				hashmapVertexIndices.insert({ vertexIndex, std::make_tuple(normalIndex , textureIndex, indexFace) });
+				indexFace++;
+			}
+		}
+		int newindexDuplicatedVertex = mesh.NV();
+		for (int keyVertexIndice = 0; keyVertexIndice < n_vertices; ++keyVertexIndice) {
+			auto range = hashmapVertexIndices.equal_range(keyVertexIndice);
+			std::unordered_map<std::pair<uint32_t, uint32_t>, std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>*, IntPairHash> uniqueVertices;
+			
+			for (auto it = range.first; it != range.second; ++it) {
+				std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>* list;
+				auto inserted = uniqueVertices.emplace(std::make_pair(std::get<0>(it->second), (std::get<1>(it->second))), list);
+				
+				if (std::get<1>(inserted)) {
+					std::get<0>(inserted)->second = new std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>();
+				}
+
+				std::get<0>(inserted)->second->push_back(it);
+
+			}
+			
+			if (uniqueVertices.size() > 0) {
+				/*(Vunique, N, T)
+				hashmapUniqueVertexIndices
+				
+				(I, Vunique)
+				hashmapFacesIndices
+				*/
+
+				auto itUniqueVertices = uniqueVertices.begin();
+
+				for (auto listIt = itUniqueVertices->second->begin(); listIt != itUniqueVertices->second->end(); ++listIt) {
+					std::unordered_map<int, std::tuple<int, int, int>>::iterator elemento = *listIt;
+
+
+					hashmapUniqueVertexIndices.emplace(elemento->first, std::make_tuple(std::get<0>(elemento->second), std::get<1>(elemento->second), elemento->first));
+					hashmapFacesIndices.emplace(std::get<2>(elemento->second), elemento->first);
+				}
+
+				itUniqueVertices++;
+				for (; itUniqueVertices != uniqueVertices.end(); ++itUniqueVertices) {
+					//std::cout << std::get<0>(itUniqueVertices->first) << " | " << std::get<1>(itUniqueVertices->first) << " | " << itUniqueVertices->second->size() << std::endl;
+					
+					auto listVertexBegin = itUniqueVertices->second->begin();
+
+					for (auto listIt = listVertexBegin; listIt != itUniqueVertices->second->end(); ++listIt) {
+						std::unordered_map<int, std::tuple<int, int, int>>::iterator elemento = *listIt;
+						
+						int duplicatedVertexIndex = newindexDuplicatedVertex;
+						
+						hashmapUniqueVertexIndices.emplace(duplicatedVertexIndex, std::make_tuple(std::get<0>(elemento->second), std::get<1>(elemento->second), elemento->first));
+						hashmapFacesIndices.emplace(std::get<2>(elemento->second), duplicatedVertexIndex);
+						
+						newindexDuplicatedVertex++;
+					}
+				}
+			}
+
+		}
+		
+		std::cout << "VERTICES: " << hashmapUniqueVertexIndices.size() << std::endl;
+		std::cout << "Faces Indices: " << hashmapFacesIndices.size() << std::endl;
+		std::cout << "Faces Before Indices: " << hashmapVertexIndices.size() << std::endl;
 		int counter{};
 		std::vector<vertexIndices> list{};
-		std::vector<bool> checkVertex(n, false);
+		std::vector<bool> checkVertex(n_vertices, false);
 
-		for (int i = 0; i < nf; i++) {
-			for (int k = 0; k < 3; k++) {
-
-				if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
-					continue;
-				}
-
-				for (int j = i; j < nf; j++) {
-					if (mesh.F(i).v[k] == mesh.F(j).v[k] && (mesh.FN(i).v[k] != mesh.FN(j).v[k])) { //works!
-
-						if (list.empty()) {
-							int vertexI = mesh.F(i).v[k];
-							int normalI = mesh.FN(i).v[k];
-							vertexIndices vertex = { vertexI, normalI };
-							list.push_back(vertex);
-						}
-
-						int vertexI = mesh.F(j).v[k];
-						int normalI = mesh.FN(j).v[k];
-
-						vertexIndices vertex = { vertexI, normalI };
-						auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) {
-							return e.vertex == vertex.vertex && e.normal == vertex.normal;
-							});
-
-						bool notFoundVertex = it == list.end();
-
-						if (notFoundVertex) {
-							list.push_back(vertex);
-						}
-					}
-				}
-
-			}
-			//se achou vértice com normal distinta
-			if (!list.empty()) {
-
-				//atualiza o valor no vetor de vértice que ele ja foi checado
-				checkVertex[list[0].vertex] = true;
-
-				//adiciona ao vbo de vértices no final o vértices que precisa duplicar
-
-				for (int m = 1; m < list.size(); m++) {
-
-					int tSize = m_vertices.size();
-					//adiciona vertice
-					m_vertices.push_back({ mesh.V(list.at(m).vertex).x, mesh.V(list.at(m).vertex).y, mesh.V(list.at(m).vertex).z, 0.5f, 0.5f, 0.5f });
-
-					//atualiza os indices dos vértices duplicados
-					for (int f = 0; f < nf; f++) {
-						for (int k = 0; k < 3; k++) {
-							if (list.at(m).vertex == mesh.F(f).v[k] && list.at(m).normal == mesh.FN(f).v[k]) {
-								mesh.F(f).v[k] = tSize;
-							}
-						}
-					}
-				};
-
-				list.clear();
-			}
-
+		for (int i = 0; i < hashmapUniqueVertexIndices.size(); i++) {
+			int v = std::get<2>(hashmapUniqueVertexIndices.find(i)->second);
+			int n = std::get<0>(hashmapUniqueVertexIndices.find(i)->second);
+			int t = std::get<1>(hashmapUniqueVertexIndices.find(i)->second);
+			
+			m_vertices.push_back({ mesh.V(v).x, mesh.V(v).y, mesh.V(v).z, 1.0f, 0.0f , 0.3f });
+			m_normals.push_back({  mesh.VN(n).x, mesh.VN(n).y, mesh.VN(n).z  });
+			m_texCoords.push_back({ mesh.VT(t).x, mesh.VT(t).y });
 		}
 
-		int nNormals = mesh.NVN();
-		int normalIndex{};
-
-		for (int i = 0; i < nf; i++) {
-			for (int k = 0; k < 3; k++) {
-
-				if (mesh.F(i).v[k] >= n || checkVertex[mesh.F(i).v[k]]) {
-					continue;
-				}
-
-				for (int j = i; j < nf; j++) {
-					if (mesh.F(i).v[k] == mesh.F(j).v[k] && mesh.FT(i).v[k] != mesh.FT(j).v[k]) { //works!
-						if (list.empty()) {
-							int vertexI = mesh.F(i).v[k];
-							int normalI = mesh.FN(i).v[k];
-							int texI = mesh.FT(i).v[k];
-							vertexIndices vertex = { vertexI, normalI, texI };
-							list.push_back(vertex);
-						}
-
-						int vertexI = mesh.F(j).v[k];
-						int normalI = mesh.FN(j).v[k];
-						int texI = mesh.FT(i).v[k];
-
-						vertexIndices vertex = { vertexI, normalI, texI };
-						auto it = std::find_if(list.begin(), list.end(), [&vertex](const vertexIndices& e) {
-							return e.vertex == vertex.vertex && e.normal == vertex.normal && e.texCoord == vertex.texCoord;
-							});
-
-						bool notFoundVertex = it == list.end();
-
-						if (notFoundVertex) {
-							list.push_back(vertex);
-						}
-					}
-				}
-
-			}
-			//se achou vértice com normal distinta
-			if (list.size() > 0) {
-
-				//atualiza o valor no vetor de vértice que ele ja foi checado
-				checkVertex[list[0].vertex] = true;
-
-				//adiciona ao vbo de vértices no final o vértices que precisa duplicar
-				for (int m = 1; m < list.size(); m++) {
-
-					int tSize = m_vertices.size();
-					//adiciona vertice
-					m_vertices.push_back({ mesh.V(list.at(m).vertex).x, mesh.V(list.at(m).vertex).y, mesh.V(list.at(m).vertex).z, 0.5f, 0.5f, 0.5f });
-					//normals.push_back({ mesh.VN(x.normal).x, mesh.VN(x.normal).y, mesh.VN(x.normal).z});
-
-
-					for (int f = 0; f < nf; f++) {
-						for (int k = 0; k < 3; k++) {
-							//mesh.VN(mesh.FN(f).v[k]).x
-							if (list.at(m).vertex == mesh.F(f).v[k] && list.at(m).normal == mesh.FN(f).v[k] && list.at(m).texCoord == mesh.FT(f).v[k]) {
-								mesh.F(f).v[k] = tSize;
-								mesh.FN(f).v[k] = list.at(m).normal;
-							}
-						}
-					}
-				};
-			}
-
-			list.clear();
-		}
-
-		int nTex = m_vertices.size();
-		int texIndex{};
-
-		for (int f = 0; f < mesh.NF(); f++) {
-			for (int k = 0; k < 3; k++) {
-				//std::cout << mesh.F(f).v[k] << " | " << mesh.FN(f).v[k] << " | " << mesh.GetMaterialFirstFace(f) << std::endl;
-				for (int j = 0; j < nf; j++) {
-					if (mesh.F(j).v[k] == texIndex) {
-						texIndex++;
-						m_texCoords.push_back({ mesh.VT(mesh.FT(j).v[k]).x, mesh.VT(mesh.FT(j).v[k]).y });
-						m_normals.push_back({ mesh.VN(mesh.FN(j).v[k]).x, mesh.VN(mesh.FN(j).v[k]).y, mesh.VN(mesh.FN(j).v[k]).z });
-						//continue;
-					}
-				}
-			}
-		}
-
-		for (int i = 0; i < nf; i++) {
-			m_facesIndex.push_back({ mesh.F(i).v[0] });
-			m_facesIndex.push_back({ mesh.F(i).v[1] });
-			m_facesIndex.push_back({ mesh.F(i).v[2] });
+		for (int i = 0; i < hashmapFacesIndices.size(); i++) {
+			m_facesIndex.push_back(hashmapFacesIndices.find(i)->second);
 		}
 
 		std::cout << m_vertices.size() << "  <- Vertices" << std::endl;
