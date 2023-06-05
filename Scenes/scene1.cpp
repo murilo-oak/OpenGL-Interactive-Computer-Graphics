@@ -12,7 +12,7 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 		"cubemap/cubemap_posz.png",
 		"cubemap/cubemap_negz.png"
 	);
-
+	
 	m_cam.updatePosition();
 	m_cam.setMVP(windowWidth, windowHeight);
 
@@ -55,7 +55,6 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_planeProgram.Link();
 
 	setUniformVariables(m_planeProgram.GetID(), windowHeight, windowWidth);
-
 };
 
 void Scene1::update() 
