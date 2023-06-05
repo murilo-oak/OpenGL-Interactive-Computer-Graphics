@@ -1,5 +1,27 @@
 #include "cubemap.h"
 
+Cubemap::Cubemap() {};
+Cubemap::~Cubemap()
+{
+	glDeleteBuffers(1, &m_vbo);
+	glDeleteTextures(1, &texCubeID);
+	glDeleteVertexArrays(1, &m_vao);
+
+	//delete all images
+	for (auto& img : image) {
+		img.clear();
+	}
+}
+
+void Cubemap::loadImage(const char* imagePath, std::vector<unsigned char>& image, unsigned int& width, unsigned int& height, lodepng::State state)
+{
+	std::vector<unsigned char> png;
+	unsigned error = lodepng::load_file(png, imagePath);
+	if (!error) error = lodepng::decode(image, width, height, state, png);
+	if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+	png.clear();
+}
+
 void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const char* posy, const char* negy, const char* posz, const char* negz){
 
 	std::vector<const char*> imgPaths {
@@ -11,11 +33,26 @@ void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const ch
 		negz
 	};
 
+	std::vector<std::thread> threads;
+
 	for (int i = 0; i < 6; i++) {
-		unsigned error = lodepng::load_file(png[i], imgPaths[i]); //load the image file with given filename
-		
-		if (!error) error = lodepng::decode(image[i], width, height, state[i], png[i]);
-		if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+		threads.emplace_back([&, i] {
+			std::vector<unsigned char> localImage;
+			lodepng::State localState;
+
+			loadImage(imgPaths[i], localImage, width, height, localState);
+
+			
+			image[i].swap(localImage);
+			state[i] = localState;
+
+			localImage.clear();
+		});
+	}
+
+	//wait threads to load all images
+	for (auto& thread : threads) {
+		thread.join();
 	}
 
 }

@@ -18,8 +18,6 @@ class IScene
 public:
 	IScene(){}
 
-	bool m_setup{ false };
-
 	virtual void setup(unsigned int windowHeight, unsigned int windowWidth) = 0;
 	virtual void update() = 0;
 	virtual void render() = 0;
