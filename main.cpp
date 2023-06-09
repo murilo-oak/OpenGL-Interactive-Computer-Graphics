@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	CY_GL_REGISTER_DEBUG_CALLBACK;
+	//CY_GL_REGISTER_DEBUG_CALLBACK;
 
 	scene1.setup(windowHeight, windowWidth);
 
