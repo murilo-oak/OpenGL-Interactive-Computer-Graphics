@@ -84,6 +84,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <PublicModuleDirectories>$(SolutionDir)\ThirdParty\$(PlatformTarget)\lib\</PublicModuleDirectories>
+    <PublicIncludeDirectories>$(SolutionDir)ThirdParty\Include\</PublicIncludeDirectories>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,7 +131,10 @@
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(SolutionDir)ThirdParty\$(PlatformTarget)\*.dll $(OutputPath) /Y</Command>
+      <Command>xcopy "$(SolutionDir)ThirdParty\$(PlatformTarget)\bin\*.dll" "$(OutputPath)" /Y
+xcopy "$(SolutionDir)3DObjects\" "$(OutputPath)3DObjects\" /E /Y
+xcopy "$(SolutionDir)cubemap\" "$(OutputPath)cubemap\" /E /Y
+xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,6 +156,12 @@
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)ThirdParty\$(PlatformTarget)\bin\*.dll" "$(OutputPath)" /Y
+xcopy "$(SolutionDir)3DObjects\" "$(OutputPath)3DObjects\" /E /Y
+xcopy "$(SolutionDir)cubemap\" "$(OutputPath)cubemap\" /E /Y
+xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\mouseinput.cpp" />
