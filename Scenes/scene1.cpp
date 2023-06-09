@@ -16,7 +16,7 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_cam.updatePosition();
 	m_cam.setMVP(windowWidth, windowHeight);
 
-	m_object3D.set("teapot.obj");
+	m_object3D.set("3DObjects/teapot.obj");
 	m_plane.set();
 
 	cy::GLSLShader vertexS;

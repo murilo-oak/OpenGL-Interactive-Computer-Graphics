@@ -65,6 +65,7 @@ void Object3D::setVboPositions()
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 }
+
 void Object3D::setVboNormals()
 {
 	glCreateBuffers(1, &m_vboNormals);
@@ -74,9 +75,9 @@ void Object3D::setVboNormals()
 
 	glEnableVertexAttribArray(2);
 }
+
 void Object3D::setVboTexCoords()
 {
-	//texcoord
 	glCreateBuffers(1, &m_vboTexCoords);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboTexCoords);
 	glNamedBufferStorage(m_vboTexCoords, m_texCoords.size() * sizeof(glm::vec2), m_texCoords.data(), 0);
@@ -84,12 +85,14 @@ void Object3D::setVboTexCoords()
 
 	glEnableVertexAttribArray(3);
 }
+
 void Object3D::setEbo(GLenum drawMode)
 {
 	glGenBuffers(1, &m_ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_facesIndex.size() * sizeof(unsigned int), m_facesIndex.data(), drawMode);
 }
+
 void Object3D::loadFromFile(const char* filename) {
 	cy::TriMesh mesh;
 
