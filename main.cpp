@@ -32,6 +32,7 @@ MouseInput mouse{};
 void myIdle() {
 	glutPostRedisplay();
 }
+
 void myKeyboard(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27:
@@ -56,6 +57,7 @@ void onLeftButton(int x, int y) {
 
 	glutPostRedisplay();
 }
+
 void onLeftButton2(int x, int y) {
 	
 	mouse.update(x, y);
@@ -63,13 +65,16 @@ void onLeftButton2(int x, int y) {
 
 	glutPostRedisplay();
 }
+
 void onRightButton(int x, int y) {
 	mouse.update(x, y);
 	scene1.onRightButton(mouse);
 
 	glutPostRedisplay();
 }
+
 bool controlIsPressed = false;
+
 void myMouse(int button, int state, int x, int y) {
 	if (state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON) {
@@ -88,6 +93,7 @@ void specialFunc(int key, int x, int y) {
 		glutMotionFunc(onLeftButton2);
 	}
 }
+
 void myDisplay(){
 	
 	scene1.update();
@@ -103,7 +109,7 @@ int main(int argc, char** argv) {
 	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
-	glutCreateWindow("OpenGL - Maxwell, the reflective Cat");
+	glutCreateWindow("OpenGL - The Reflective Teapot");
 
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
