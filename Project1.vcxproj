@@ -131,7 +131,7 @@
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)ThirdParty\$(PlatformTarget)\bin\*.dll" "$(OutputPath)" /Y
+      <Command>xcopy "$(SolutionDir)ThirdParty\$(PlatformTarget)dlls\bin\*.dll" "$(OutputPath)" /Y
 xcopy "$(SolutionDir)3DObjects\" "$(OutputPath)3DObjects\" /E /Y
 xcopy "$(SolutionDir)cubemap\" "$(OutputPath)cubemap\" /E /Y
 xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
@@ -157,7 +157,7 @@ xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)ThirdParty\$(PlatformTarget)\bin\*.dll" "$(OutputPath)" /Y
+      <Command>xcopy "$(SolutionDir)ThirdParty\$(PlatformTarget)dlls\bin\*.dll" "$(OutputPath)" /Y
 xcopy "$(SolutionDir)3DObjects\" "$(OutputPath)3DObjects\" /E /Y
 xcopy "$(SolutionDir)cubemap\" "$(OutputPath)cubemap\" /E /Y
 xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
