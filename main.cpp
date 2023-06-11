@@ -20,10 +20,6 @@
 
 Scene1 scene1{};
 
-GLuint frameBuffer{};
-GLuint renderedTexture{};
-int texID{};
-
 int windowWidth{ 500 };
 int windowHeight{ 500 };
 
