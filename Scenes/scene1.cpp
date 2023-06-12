@@ -107,23 +107,23 @@ void Scene1::render()
 
 	//drawobject
 	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
-
+	
 	glGenerateTextureMipmap(m_plane.m_renderedTexture);
-
+	
 	glUseProgram(m_objectProgram.GetID());
-
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(m_plane.m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
 	glActiveTexture(GL_TEXTURE0);
-
+	
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_plane.m_frameBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
-
+	
 	bool camCanSeeObject = glm::dot(m_cam.m_position, glm::vec3(0, 1, 0)) > 0;
 
 	if (camCanSeeObject) {
@@ -148,15 +148,21 @@ void Scene1::render()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	glUseProgram(m_planeProgram.GetID());
-
+	
 	glBindVertexArray(m_plane.m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
-	glActiveTexture(GL_TEXTURE0);
 	
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
+	glUniform1i(glGetUniformLocation(m_planeProgram.GetID(), "tex"), 0);
+
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.texCubeID);
+	glUniform1i(glGetUniformLocation(m_planeProgram.GetID(), "skybox"), 1);
+
 	//drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	
 	glutSwapBuffers();
 };
 
@@ -253,4 +259,5 @@ void Scene1::recompileShaders()
 	m_planeProgram.AttachShader(fragmentS);
 	m_planeProgram.AttachShader(vertexS);
 	m_planeProgram.Link();
+	
 }
