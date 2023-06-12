@@ -106,11 +106,8 @@ void Plane::setFrameBuffer() {
 }
 
 void Plane::resizeFrameBuffer(unsigned int windowWidth, unsigned int windowHeight) {
-	glDeleteBuffers(1, &m_frameBuffer);
 	glDeleteFramebuffers(1, &m_frameBuffer);
-	glDeleteTextures(1, &m_texID);
-	glDeleteTextures(1, &m_frameBuffer);
-	glDeleteBuffers(1, &m_frameBuffer);
+
 	m_texWidth = windowWidth;
 	m_texHeight = windowHeight;
 	set(windowWidth, windowHeight);

@@ -59,10 +59,22 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 };
 
 void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) {
-	m_cam.setMVP(windowWidth, windowHeight);
-	m_windowWidth = windowWidth;
-	m_windowHeight = windowHeight;
-	m_plane.resizeFrameBuffer(windowWidth, windowHeight);
+	
+	//when height is too small, reshape viewport to not show the skybox boundaries
+	if ((float)windowHeight / (float)windowWidth < 0.3) {
+		reshapeWindow((float)windowHeight/0.31, windowHeight);
+		return;
+	}
+	
+	//makes sure that window won't crash if some of the sizes have size zero
+	if (windowHeight > 0 && windowWidth > 0) {
+		m_cam.setMVP(windowWidth, windowHeight);
+		m_windowWidth = windowWidth;
+		m_windowHeight = windowHeight;
+
+		std::cout << "Ratio: " << (float)windowHeight / (float)windowWidth << std::endl;
+		m_plane.resizeFrameBuffer(windowWidth, windowHeight);
+	}
 };
 
 void Scene1::update() 
