@@ -16,9 +16,10 @@ public:
 	glm::vec3 m_lightDir{ 0.0f, 1.0f, 0.0f };
 	unsigned int m_windowHeight{}, m_windowWidth{};
 
-	void setup(unsigned int windowHeight, unsigned int windowWidth) override;
+	void setup(unsigned int windowWidth, unsigned int windowHeight) override;
 	void update() override;
 	void render() override;
+	void reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) override;
 
 	void onRightButton(MouseInput mouse) override;
 	void onLeftButton (MouseInput mouse) override;

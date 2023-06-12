@@ -96,6 +96,12 @@ void myDisplay(){
 	scene1.render();
 }
 
+void reshapeWindow(int windowWidth, int windowHeight) {
+	scene1.reshapeWindow(windowWidth, windowHeight);
+	
+	glutPostRedisplay();
+}
+
 int main(int argc, char** argv) {
 
 	glutInit(&argc, argv);
@@ -110,6 +116,7 @@ int main(int argc, char** argv) {
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
 	glutSpecialFunc (specialFunc);
+	glutReshapeFunc(reshapeWindow);
 
 	GLenum res = glewInit();
 	if (res != GLEW_OK)
@@ -118,7 +125,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	//CY_GL_REGISTER_DEBUG_CALLBACK;
+	CY_GL_REGISTER_DEBUG_CALLBACK;
 
 	scene1.setup(windowHeight, windowWidth);
 

@@ -38,7 +38,10 @@ void Plane::generateBuffers() {
 	};
 }
 
-void Plane::set() {
+void Plane::set(unsigned texSizeWidth, unsigned texSizeHeight) {
+	m_texWidth = texSizeWidth;
+	m_texHeight = texSizeHeight;
+	
 	glGenVertexArrays(1, &m_vao);
 	glBindVertexArray(m_vao);
 
@@ -75,6 +78,7 @@ void Plane::set() {
 
 	setFrameBuffer();
 }
+
 void Plane::setFrameBuffer() {
 	//framebuffer
 	glGenFramebuffers(1, &m_frameBuffer);
@@ -99,4 +103,15 @@ void Plane::setFrameBuffer() {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_renderedTexture, 0);
 	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+}
+
+void Plane::resizeFrameBuffer(unsigned int windowWidth, unsigned int windowHeight) {
+	glDeleteBuffers(1, &m_frameBuffer);
+	glDeleteFramebuffers(1, &m_frameBuffer);
+	glDeleteTextures(1, &m_texID);
+	glDeleteTextures(1, &m_frameBuffer);
+	glDeleteBuffers(1, &m_frameBuffer);
+	m_texWidth = windowWidth;
+	m_texHeight = windowHeight;
+	set(windowWidth, windowHeight);
 }
