@@ -10,25 +10,44 @@ in vec3 normalObject;
 
 layout(location = 0) out vec4 ocolor;
 uniform sampler2D tex;
-
-uniform vec3 cameraPos;
 uniform samplerCube skybox;
 
+uniform vec3 cameraPos;
 uniform vec2 windowSize;
 
+float difuseLight( vec3 normalSurface, vec3 lightDir){
+	return max(0, dot(normalSurface, lightDir));
+}
+
 void main() {
-	vec3 I = pos.xyz * 0.05 - cameraPos;
+	vec3 camDir = pos.xyz * 0.05 - cameraPos;
+	
+	vec3 normalN = normalize(normal);
+	vec3 halfVec = normalize((-camDir + lightD)/2);
+	
+	float specular = dot(normalN, halfVec);
+	float difuse = difuseLight(normalN, lightD);
+	
+
+	float specularMask = clamp(dot(normalN, halfVec), 0, 1);
+	float specularLight = pow(specularMask, 2000);
+	
+	difuse += 0.4;
+	difuse = clamp(difuse, 0, 1);
+
+	bool test = difuse > 0;
+	specularLight *= int(test);
+
 	vec3 N = normalObject;
 	
 	vec4 texColor =  texture(tex, vec2(gl_FragCoord.x/windowSize.x, -gl_FragCoord.y/windowSize.y));
-
-	float test = dot(normalize(cameraPos), N);
+	vec4 skyTex = texture(skybox, reflect(camDir, N));
 
 	if(texColor.a > 0){
-		ocolor = texColor;
+		ocolor =  (difuse + 0.2) * texColor + specularLight;
 	}
 	else{
-		ocolor = texture(skybox, reflect(I, N));
+		ocolor =  (difuse + 0.2) * skyTex + specularLight;
 	}
 
 }
