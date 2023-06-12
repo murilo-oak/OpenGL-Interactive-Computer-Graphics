@@ -1,6 +1,6 @@
 #include "scene1.h"
 
-void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
+void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 	m_windowWidth = windowWidth;
 	m_windowHeight = windowHeight;
 
@@ -17,8 +17,8 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_cam.setMVP(windowWidth, windowHeight);
 
 	m_object3D.set("3DObjects/teapot.obj");
-	m_plane.set();
-
+	m_plane.set(m_windowWidth, m_windowHeight);
+	
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
@@ -29,11 +29,11 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_objectProgram.AttachShader(fragmentS);
 	m_objectProgram.AttachShader(vertexS);
 	m_objectProgram.Link();
-
+	
 	m_object3D.setTexture(windowWidth, windowHeight);
 
 	m_cubemap.set();
-
+	
 	setUniformVariables(m_objectProgram.GetID(), windowHeight, windowWidth);
 
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
@@ -55,6 +55,14 @@ void Scene1::setup(unsigned int windowHeight, unsigned int windowWidth) {
 	m_planeProgram.Link();
 
 	setUniformVariables(m_planeProgram.GetID(), windowHeight, windowWidth);
+	
+};
+
+void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) {
+	m_cam.setMVP(windowWidth, windowHeight);
+	m_windowWidth = windowWidth;
+	m_windowHeight = windowHeight;
+	m_plane.resizeFrameBuffer(windowWidth, windowHeight);
 };
 
 void Scene1::update() 
@@ -74,7 +82,6 @@ void Scene1::render()
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
 	glUseProgram(m_skyboxProgram.GetID());
 
@@ -88,11 +95,11 @@ void Scene1::render()
 
 
 	glEnable(GL_DEPTH_TEST);
-
+	
 	glUseProgram(m_objectProgram.GetID());
 
 	glBindVertexArray(m_object3D.m_vao);
-	glViewport(0, 0, m_object3D.m_texWidth, m_object3D.m_texHeight);
+	glViewport(0, 0, m_windowWidth, m_windowHeight);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_object3D.m_texID);
@@ -101,7 +108,7 @@ void Scene1::render()
 	//drawobject
 	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 
-	//glGenerateTextureMipmap(m_plane.m_renderedTexture);
+	glGenerateTextureMipmap(m_plane.m_renderedTexture);
 
 	glUseProgram(m_objectProgram.GetID());
 
@@ -149,6 +156,7 @@ void Scene1::render()
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 	//drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	
 	glutSwapBuffers();
 };
 
@@ -182,6 +190,7 @@ void Scene1::setUniformVariables(GLuint programID, unsigned int windowHeight, un
 	glUniform1i(sampler, 0);
 
 	updateUniformVariables(programID);
+	
 }
 
 void Scene1::updateUniformVariables(GLuint programID) {

@@ -18,9 +18,11 @@ class IScene
 public:
 	IScene(){}
 
-	virtual void setup(unsigned int windowHeight, unsigned int windowWidth) = 0;
+	virtual void setup(unsigned int windowWidth, unsigned int windowHeight) = 0;
+	virtual void reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) = 0;
 	virtual void update() = 0;
 	virtual void render() = 0;
+
 	virtual void onRightButton(MouseInput mouse) = 0;
 	virtual void onLeftButton(MouseInput mouse) = 0;
 	virtual void onLeftButton2(MouseInput mouse) = 0;

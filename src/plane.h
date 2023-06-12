@@ -8,7 +8,9 @@ public:
 	~Plane();
 
 	void generateBuffers();
-	void set();
+	void set(unsigned texSizeWidth, unsigned texSizeHeight);
+	
 	void setFrameBuffer();
+	void resizeFrameBuffer(unsigned int windowWidth, unsigned int windowHeight);
 };
 

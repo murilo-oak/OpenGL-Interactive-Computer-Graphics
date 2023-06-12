@@ -35,7 +35,7 @@ void Object3D::set(const char* filename) {
 	setEbo(GL_STATIC_DRAW);
 }
 
-void Object3D::setTexture(unsigned texSizeWidth, unsigned texSizeHeight) {
+void Object3D::setTexture(unsigned texSizeWidth = 500, unsigned texSizeHeight = 500) {
 	m_texWidth = texSizeWidth;
 	m_texHeight = texSizeHeight;
 
