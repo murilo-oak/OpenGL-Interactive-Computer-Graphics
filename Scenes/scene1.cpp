@@ -66,7 +66,7 @@ void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) 
 		return;
 	}
 	
-	//makes sure that window won't crash if some of the sizes have size zero
+	//makes sure that window won't crash if one of the window sides have size zero
 	if (windowHeight > 0 && windowWidth > 0) {
 		m_cam.setMVP(windowWidth, windowHeight);
 		m_windowWidth = windowWidth;
@@ -89,58 +89,68 @@ void Scene1::render()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-	
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
+	
+	//draw skybox before anything
+	drawSkybox();
+	
+	glEnable(GL_DEPTH_TEST);
+	
+	draw3dObj();
+	drawPlane();
+	
+	glutSwapBuffers();
+};
+
+void inline Scene1::drawSkybox()
+{
+	//draw skybox
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glUseProgram(m_skyboxProgram.GetID());
 
 	glDepthMask(GL_FALSE);
+	
 	glBindVertexArray(m_cubemap.m_vao);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.texCubeID);
-	
-	//draw cubemap
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+
 	glDepthMask(GL_TRUE);
+}
 
-
-	glEnable(GL_DEPTH_TEST);
-	
+void inline Scene1::draw3dObj() 
+{
 	glUseProgram(m_objectProgram.GetID());
 
 	glBindVertexArray(m_object3D.m_vao);
-	glViewport(0, 0, m_windowWidth, m_windowHeight);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_object3D.m_texID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_object3D.m_ebo);
 
-	//drawobject
 	glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
-	
-	glGenerateTextureMipmap(m_plane.m_renderedTexture);
-	
-	glUseProgram(m_objectProgram.GetID());
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindVertexArray(m_plane.m_vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
-	glActiveTexture(GL_TEXTURE0);
-	
-	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
+}
 
+void inline Scene1::drawPlane() 
+{
+	//bind framebuffer and setup frame
 	glBindFramebuffer(GL_FRAMEBUFFER, m_plane.m_frameBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
-	
-	bool camCanSeeObject = glm::dot(m_cam.m_position, glm::vec3(0, 1, 0)) > 0;
 
-	if (camCanSeeObject) {
+	//bind the texture to be rendered
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
+
+	bool cameraCanSeeObject = glm::dot(m_cam.m_position, glm::vec3(0, 1, 0)) > 0;
+
+	if (cameraCanSeeObject) {
+		//render the 3d object reflected on the plane
 		glUseProgram(m_objectProgram.GetID());
 		glBindVertexArray(m_object3D.m_vao);
 
+		//reflect camera view
 		glm::mat4 view = glm::lookAt(
 			glm::reflect(m_cam.m_position, glm::vec3(0, 1, 0)),
 			glm::vec3(0.0f, 0.0f, 0.0f),
@@ -149,20 +159,23 @@ void Scene1::render()
 
 		glm::mat4 mvp = m_cam.m_projection * m_cam.m_model * view;
 
+		//send the reflected mvp to the shader
 		GLint uniformLoc = glGetUniformLocation(m_objectProgram.GetID(), "mvp");
 		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
+		//draw into texture the 3d object
 		glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 	}
 	glGenerateMipmap(GL_TEXTURE_2D);
-	
+
+	//draw plane with the rendered texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
+
 	glUseProgram(m_planeProgram.GetID());
-	
+
 	glBindVertexArray(m_plane.m_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.m_ebo);
-	
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 	glUniform1i(glGetUniformLocation(m_planeProgram.GetID(), "tex"), 0);
@@ -174,8 +187,7 @@ void Scene1::render()
 
 	//drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glutSwapBuffers();
-};
+}
 
 void Scene1::onRightButton(MouseInput mouse) {
 	m_cam.m_angle.x += mouse.getDeltaX() / 400.0f;

@@ -29,5 +29,9 @@ public:
 	void updateUniformVariables(GLuint programID);
 	
 	void recompileShaders() override;
+
+	void inline drawSkybox();
+	void inline draw3dObj();
+	void inline drawPlane();
 };
 
