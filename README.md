@@ -66,6 +66,7 @@ git submodule update
 7. **Interacting with the application**:
    - Left mouse button + drag: Zoom in/out by dragging the mouse forward or backward. 🖱️🔍
    - Right mouse button + drag: Rotate the view around the teapot. 🖱️🔄
+   - Press the **R** key to recompile shaders. ⌨️🔄
 
    Feel free to explore the application and experiment with the interactive controls to navigate the scene.
 ## License 📄🔒
