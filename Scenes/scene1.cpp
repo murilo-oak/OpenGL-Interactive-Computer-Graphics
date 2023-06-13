@@ -72,7 +72,6 @@ void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) 
 		m_windowWidth = windowWidth;
 		m_windowHeight = windowHeight;
 
-		std::cout << "Ratio: " << (float)windowHeight / (float)windowWidth << std::endl;
 		m_plane.resizeFrameBuffer(windowWidth, windowHeight);
 	}
 };
