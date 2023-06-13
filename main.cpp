@@ -19,92 +19,25 @@
 #include "Scenes/scene1.h"
 
 Scene1 scene1{};
+MouseInput mouse{};
 
 int windowWidth{ 500 };
 int windowHeight{ 500 };
 
-MouseInput mouse{};
+void myKeyboard(unsigned char, int, int);
+void onLeftButton(int, int );
+void onLeftButton2(int, int);
+void onRightButton(int, int);
+void myMouse(int, int, int, int);
+void specialFunc(int, int, int);
+void myDisplay();
+void reshapeWindow(int, int);
 
-void myIdle() {
-	glutPostRedisplay();
-}
-
-void myKeyboard(unsigned char key, int x, int y) {
-	switch (key) {
-		case 27:
-			glutLeaveMainLoop();
-			break;
-		case 'r':
-			std::cout << "recompile" << std::endl;
-			scene1.recompileShaders();
-			break;
-		case 'R':
-			std::cout << "recompile" << std::endl;
-			scene1.recompileShaders();
-			break;
-	}
-	glutPostRedisplay();
-}
-
-void onLeftButton(int x, int y) {
-	
-	mouse.update(x, y);
-	scene1.onLeftButton(mouse);
-
-	glutPostRedisplay();
-}
-
-void onLeftButton2(int x, int y) {
-	
-	mouse.update(x, y);
-	scene1.onLeftButton2(mouse);
-
-	glutPostRedisplay();
-}
-
-void onRightButton(int x, int y) {
-	mouse.update(x, y);
-	scene1.onRightButton(mouse);
-
-	glutPostRedisplay();
-}
-
-bool controlIsPressed = false;
-
-void myMouse(int button, int state, int x, int y) {
-	if (state == GLUT_DOWN) {
-		if (button == GLUT_LEFT_BUTTON) {
-			mouse.update(x, y);
-			glutMotionFunc(onLeftButton);
-		}
-		else if (button == GLUT_RIGHT_BUTTON && !controlIsPressed) {
-			mouse.update(x, y);
-			glutMotionFunc(onRightButton);
-		}	
-	}
-}
-void specialFunc(int key, int x, int y) {
-	if (key == GLUT_KEY_CTRL_L) {
-		mouse.update(x, y);
-		glutMotionFunc(onLeftButton2);
-	}
-}
-
-void myDisplay(){
-	
-	scene1.update();
-	scene1.render();
-}
-
-void reshapeWindow(int windowWidth, int windowHeight) {
-	scene1.reshapeWindow(windowWidth, windowHeight);
-	
-	glutPostRedisplay();
-}
-
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
 
 	glutInit(&argc, argv);
+	
 	glutInitContextVersion(4, 5);
 	glutInitContextFlags(GLUT_DEBUG);
 	glutInitWindowSize(windowWidth, windowHeight);
@@ -113,12 +46,14 @@ int main(int argc, char** argv) {
 
 	glutCreateWindow("OpenGL - The Reflective Teapot");
 
+	//setup callback functions
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
 	glutSpecialFunc (specialFunc);
 	glutReshapeFunc(reshapeWindow);
 
 	GLenum res = glewInit();
+	//check if glew initializes
 	if (res != GLEW_OK)
 	{
 		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
@@ -127,10 +62,94 @@ int main(int argc, char** argv) {
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 
+	//setup scene
 	scene1.setup(windowHeight, windowWidth);
 
 	glutDisplayFunc(myDisplay);
 	glutMainLoop();
 
 	return 0;
+}
+
+void myKeyboard(unsigned char key, int x, int y) 
+{
+	switch (key) {
+	case 27:
+		glutLeaveMainLoop(); // Exit the main loop when 'Esc' is pressed
+		break;
+	case 'r':
+		std::cout << "recompile" << std::endl;
+		scene1.recompileShaders(); // Recompile shaders when 'r' key is pressed
+		break;
+	case 'R':
+		std::cout << "recompile" << std::endl; // Recompile shaders when 'R' key is pressed
+		scene1.recompileShaders();
+		break;
+	}
+	glutPostRedisplay();
+}
+
+// Callback function for mouse input
+void myMouse(int button, int state, int x, int y)
+{
+	if (state == GLUT_DOWN) {
+		if (button == GLUT_LEFT_BUTTON) {
+			mouse.update(x, y);
+			glutMotionFunc(onLeftButton);
+		}
+		else if (button == GLUT_RIGHT_BUTTON) {
+			mouse.update(x, y);
+			glutMotionFunc(onRightButton);
+		}
+	}
+}
+
+// Callback function for right mouse button input
+void onLeftButton(int x, int y) {
+
+	mouse.update(x, y);
+	scene1.onLeftButton(mouse);
+
+	glutPostRedisplay();
+}
+
+// Callback function for right mouse button input
+void onRightButton(int x, int y)
+{
+	mouse.update(x, y);
+	scene1.onRightButton(mouse);
+
+	glutPostRedisplay();
+}
+
+// Callback function for special key input
+void specialFunc(int key, int x, int y) 
+{
+	if (key == GLUT_KEY_CTRL_L) { //if left control pressed
+		mouse.update(x, y);
+		glutMotionFunc(onLeftButton2);
+	}
+}
+
+// This callback function is called after the left mouse button is pressed, followed by the left control key.
+void onLeftButton2(int x, int y)
+{
+
+	mouse.update(x, y);
+	scene1.onLeftButton2(mouse);
+
+	glutPostRedisplay();
+}
+
+// Callback function for display
+void myDisplay() 
+{
+	scene1.update();
+	scene1.render();
+}
+// Callback function for window reshape
+void reshapeWindow(int windowWidth, int windowHeight) 
+{
+	scene1.reshapeWindow(windowWidth, windowHeight);
+	glutPostRedisplay();
 }
