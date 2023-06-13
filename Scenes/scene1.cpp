@@ -58,24 +58,6 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 	
 };
 
-void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) {
-	
-	//when height is too small, reshape viewport to not show the skybox boundaries
-	if ((float)windowHeight / (float)windowWidth < 0.3) {
-		reshapeWindow((float)windowHeight/0.31, windowHeight);
-		return;
-	}
-	
-	//makes sure that window won't crash if one of the window sides have size zero
-	if (windowHeight > 0 && windowWidth > 0) {
-		m_cam.setMVP(windowWidth, windowHeight);
-		m_windowWidth = windowWidth;
-		m_windowHeight = windowHeight;
-
-		m_plane.resizeFrameBuffer(windowWidth, windowHeight);
-	}
-};
-
 void Scene1::update() 
 {
 	m_cam.update();
@@ -112,7 +94,7 @@ void inline Scene1::drawSkybox()
 	glDepthMask(GL_FALSE);
 	
 	glBindVertexArray(m_cubemap.m_vao);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.texCubeID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.m_texCubeID);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glDepthMask(GL_TRUE);
@@ -182,12 +164,30 @@ void inline Scene1::drawPlane()
 
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.texCubeID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.m_texCubeID);
 	glUniform1i(glGetUniformLocation(m_planeProgram.GetID(), "skybox"), 1);
 
 	//drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
+
+void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) {
+
+	//when height is too small, reshape viewport to not show the skybox boundaries
+	if ((float)windowHeight / (float)windowWidth < 0.3) {
+		reshapeWindow((float)windowHeight / 0.31, windowHeight);
+		return;
+	}
+
+	//makes sure that window won't crash if one of the window sides have size zero
+	if (windowHeight > 0 && windowWidth > 0) {
+		m_cam.setMVP(windowWidth, windowHeight);
+		m_windowWidth = windowWidth;
+		m_windowHeight = windowHeight;
+
+		m_plane.resizeFrameBuffer(windowWidth, windowHeight);
+	}
+};
 
 void Scene1::onRightButton(MouseInput mouse) {
 	m_cam.m_angle.x += mouse.getDeltaX() / 400.0f;
@@ -282,5 +282,4 @@ void Scene1::recompileShaders()
 	m_planeProgram.AttachShader(fragmentS);
 	m_planeProgram.AttachShader(vertexS);
 	m_planeProgram.Link();
-	
 }

@@ -23,7 +23,8 @@ Object3D::~Object3D()
 	m_image.clear();
 }
 
-void Object3D::set(const char* filename) {
+void Object3D::set(const char* filename)
+{
 	loadFromFile(filename);
 
 	glGenVertexArrays(1, &m_vao);
@@ -35,7 +36,8 @@ void Object3D::set(const char* filename) {
 	setEbo(GL_STATIC_DRAW);
 }
 
-void Object3D::setTexture(unsigned texSizeWidth = 500, unsigned texSizeHeight = 500) {
+void Object3D::setTexture(unsigned texSizeWidth = 500, unsigned texSizeHeight = 500) 
+{
 	m_texWidth = texSizeWidth;
 	m_texHeight = texSizeHeight;
 
@@ -93,7 +95,8 @@ void Object3D::setEbo(GLenum drawMode)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_facesIndex.size() * sizeof(unsigned int), m_facesIndex.data(), drawMode);
 }
 
-void Object3D::loadFromFile(const char* filename) {
+void Object3D::loadFromFile(const char* filename) 
+{
 	cy::TriMesh mesh;
 
 	mesh.LoadFromFileObj(filename);
@@ -106,7 +109,8 @@ void Object3D::loadFromFile(const char* filename) {
 	generateBuffers(mesh);
 }
 
-struct IntPairHash {
+struct IntPairHash 
+{
 	std::size_t operator()(const std::pair<uint32_t, uint32_t>& p) const {
 		assert(sizeof(std::size_t) >= 8);  //Ensure that std::size_t, the type of the hash, is large enough
 		//Shift first integer over to make room for the second integer. The two are
@@ -115,7 +119,8 @@ struct IntPairHash {
 	}
 };
 
-void Object3D::generateBuffers(cy::TriMesh mesh) {
+void Object3D::generateBuffers(cy::TriMesh mesh) 
+{
 	std::unordered_multimap<int, std::tuple<int, int, int>> hashmapVertexIndices;
 	std::unordered_map<int, std::tuple<int, int, int>> hashmapUniqueVertexIndices;
 	std::unordered_map<int, int> hashmapFacesIndices;

@@ -1,9 +1,19 @@
 #include "plane.h"
 
+/**
+ * @brief Default constructor for the Plane class.
+ *
+ * This constructor generates the vertex, normal, texture coordinate, and face index buffers for the Plane object.
+ */
 Plane::Plane() {
 	generateBuffers();
 }
 
+/**
+ * @brief Destructor for the Plane class.
+ *
+ * This destructor calls the destructor of the base class Object3D to clean up any resources held by the Plane object.
+ */
 Plane::~Plane() {
 	Object3D::~Object3D();
 }
@@ -38,7 +48,8 @@ void Plane::generateBuffers() {
 	};
 }
 
-void Plane::set(unsigned texSizeWidth, unsigned texSizeHeight) {
+void Plane::set(unsigned texSizeWidth, unsigned texSizeHeight) 
+{
 	m_texWidth = texSizeWidth;
 	m_texHeight = texSizeHeight;
 	
@@ -79,7 +90,8 @@ void Plane::set(unsigned texSizeWidth, unsigned texSizeHeight) {
 	setFrameBuffer();
 }
 
-void Plane::setFrameBuffer() {
+void Plane::setFrameBuffer() 
+{
 	//framebuffer
 	glGenFramebuffers(1, &m_frameBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frameBuffer);
@@ -105,7 +117,8 @@ void Plane::setFrameBuffer() {
 	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 }
 
-void Plane::resizeFrameBuffer(unsigned int windowWidth, unsigned int windowHeight) {
+void Plane::resizeFrameBuffer(unsigned int windowWidth, unsigned int windowHeight) 
+{
 	glDeleteFramebuffers(1, &m_frameBuffer);
 
 	m_texWidth = windowWidth;
