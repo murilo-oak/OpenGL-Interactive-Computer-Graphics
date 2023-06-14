@@ -97,12 +97,12 @@ void Object3D::setEbo(GLenum drawMode)
 
 void Object3D::loadFromFile(const char* filename) 
 {
-	//load
+	//Load mesh
 	cy::TriMesh mesh;
 
 	mesh.LoadFromFileObj(filename);
 
-	//clear to ensure that won't have garbage into vbos and ebo
+	//Clear to ensure that won't have garbage into vbos and ebo
 	m_vertices.clear();
 	m_normals.clear();
 	m_texCoords.clear();
@@ -123,67 +123,84 @@ struct IntPairHash
 
 void Object3D::generateBuffers(cy::TriMesh mesh) 
 {
-	std::unordered_multimap<int, std::tuple<int, int, int>> hashmapVertexIndices;
-	std::unordered_map<int, std::tuple<int, int, int>> hashmapUniqueVertexIndices;
-	std::unordered_map<int, int> hashmapFacesIndices;
+	// Map to store vertex indices and corresponding attributes: (Vertex index) || (normal index, texture index, face index)
+	std::unordered_multimap<int, std::tuple<int, int, int>> vertexIndexMap;
+	
+	// Map to store unique vertex indices within each face: (Vertex within face ID) || (Vertex unique index)
+	std::unordered_map<int, int> faceIndexMap;
 
-	//vector of vertices
+	// Map to store unique vertex indices and their attributes: (Vertex unique index) || (normal index, texture index)
+	std::unordered_map<int, std::tuple<int, int, int>> uniqueVertexIndexMap;
+	
+
+	// Number of vertices in the mesh
 	int n_vertices = mesh.NV();
 
+	// Total number of faces in the 3D object
 	int nf = mesh.NF();
-	int indexFace = 0;
+	
+	// ID of the vertex within each face
+	int vertexWithinFaceId = 0;
 
+	// Load vertex index map (Vertex index || (normal index, texture index, face index))
 	for (int i = 0; i < nf; i++) {
 		for (int k = 0; k < 3; k++) {
 			int vertexIndex = mesh.F(i).v[k];
 			int normalIndex = mesh.FN(i).v[k];
 			int textureIndex = mesh.FT(i).v[k];
 
-			hashmapVertexIndices.insert({ vertexIndex, std::make_tuple(normalIndex , textureIndex, indexFace) });
-			indexFace++;
+			vertexIndexMap.insert({ vertexIndex, std::make_tuple(normalIndex , textureIndex, vertexWithinFaceId) });
+			vertexWithinFaceId++;
 		}
 	}
 
+	// Receive the last vertex index from the mesh, which allows creating new unique duplicated vertices indices
 	int newindexDuplicatedVertex = mesh.NV();
 
+	// For each vertex index from the mesh
 	for (int keyVertexIndice = 0; keyVertexIndice < n_vertices; ++keyVertexIndice) {
-		auto range = hashmapVertexIndices.equal_range(keyVertexIndice);
-		std::unordered_map<std::pair<uint32_t, uint32_t>, std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>*, IntPairHash> uniqueVertices;
+		// Find all repeated vertex indices
+		auto range = vertexIndexMap.equal_range(keyVertexIndice);
+		
+		// Map to store unique vertices: (normal Index, texture Index) || (list of references to occurrences of vertex inside vertexIndexMap)
+		std::unordered_map<std::pair<uint32_t, uint32_t>, std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>*, IntPairHash> uniqueVerticesMap;
 
-		for (auto it = range.first; it != range.second; ++it) {
+		// For each vertex index, construct a list of references with duplicated vertices
+		for (auto itRange = range.first; itRange != range.second; ++itRange) {
 			std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>* list;
-			auto inserted = uniqueVertices.emplace(std::make_pair(std::get<0>(it->second), (std::get<1>(it->second))), list);
+			auto inserted = uniqueVerticesMap.emplace(std::make_pair(std::get<0>(itRange->second), (std::get<1>(itRange->second))), list);
 
 			if (std::get<1>(inserted)) {
 				std::get<0>(inserted)->second = new std::list<std::unordered_map<int, std::tuple<int, int, int>>::iterator>();
 			}
 
-			std::get<0>(inserted)->second->push_back(it);
+			std::get<0>(inserted)->second->push_back(itRange);
 
 		}
 
-		/*(Vunique, N, T)
-		hashmapUniqueVertexIndices
+		auto itUniqueVertices = uniqueVerticesMap.begin();
 
-		(I, Vunique)
-		hashmapFacesIndices
-		*/
-
-		auto itUniqueVertices = uniqueVertices.begin();
-
+		// For each list of vertices with the same first vertex, copy their content to the uniqueVertexIndexMap and faceIndexMap.
 		for (auto listIt = itUniqueVertices->second->begin(); listIt != itUniqueVertices->second->end(); ++listIt) {
-			std::unordered_map<int, std::tuple<int, int, int>>::iterator elemento = *listIt;
+			std::unordered_map<int, std::tuple<int, int, int>>::iterator element = *listIt;
 
+			// Add the vertex, along with its normal and texture indices, to the uniqueVertexIndexMap
+			uniqueVertexIndexMap.emplace(
+				element->first, 
+				std::make_tuple(std::get<0>(element->second),
+				std::get<1>(element->second), element->first)
+			);
 
-			hashmapUniqueVertexIndices.emplace(elemento->first, std::make_tuple(std::get<0>(elemento->second), std::get<1>(elemento->second), elemento->first));
-			hashmapFacesIndices.emplace(std::get<2>(elemento->second), elemento->first);
+			// Add the face index associated with the vertex to the faceIndexMap
+			faceIndexMap.emplace(std::get<2>(element->second), element->first);
 
 		}
 
 		delete itUniqueVertices->second;
 		itUniqueVertices++;
 
-		for (; itUniqueVertices != uniqueVertices.end(); ++itUniqueVertices) {
+		// For the remaining lists of vertices, duplicate each vertex with a new vertex index
+		for (; itUniqueVertices != uniqueVerticesMap.end(); ++itUniqueVertices) {
 
 			auto listVertexBegin = itUniqueVertices->second->begin();
 
@@ -192,9 +209,17 @@ void Object3D::generateBuffers(cy::TriMesh mesh)
 
 				int duplicatedVertexIndex = newindexDuplicatedVertex;
 
-				hashmapUniqueVertexIndices.emplace(duplicatedVertexIndex, std::make_tuple(std::get<0>(elemento->second), std::get<1>(elemento->second), elemento->first));
-				hashmapFacesIndices.emplace(std::get<2>(elemento->second), duplicatedVertexIndex);
+				// Add the duplicated vertex, along with its normal and texture indices, to the uniqueVertexIndexMap
+				uniqueVertexIndexMap.emplace(
+					duplicatedVertexIndex, 
+					std::make_tuple(std::get<0>(elemento->second), 
+					std::get<1>(elemento->second), elemento->first)
+				);
+				
+				// Add the face index associated with the duplicated vertex to the faceIndexMap
+				faceIndexMap.emplace(std::get<2>(elemento->second), duplicatedVertexIndex);
 
+				//update next new index
 				newindexDuplicatedVertex++;
 
 			}
@@ -203,22 +228,24 @@ void Object3D::generateBuffers(cy::TriMesh mesh)
 
 	}
 
-	for (int i = 0; i < hashmapUniqueVertexIndices.size(); i++) {
-		int v = std::get<2>(hashmapUniqueVertexIndices.find(i)->second);
-		int n = std::get<0>(hashmapUniqueVertexIndices.find(i)->second);
-		int t = std::get<1>(hashmapUniqueVertexIndices.find(i)->second);
+	// Populate vectors with all indices
+	for (int i = 0; i < uniqueVertexIndexMap.size(); i++) {
+		int v = std::get<2>(uniqueVertexIndexMap.find(i)->second);
+		int n = std::get<0>(uniqueVertexIndexMap.find(i)->second);
+		int t = std::get<1>(uniqueVertexIndexMap.find(i)->second);
 
 		m_vertices.push_back({ mesh.V(v).x, mesh.V(v).y, mesh.V(v).z, 1.0f, 0.0f , 0.3f });
 		m_normals.push_back({ mesh.VN(n).x, mesh.VN(n).y, mesh.VN(n).z });
 		m_texCoords.push_back({ mesh.VT(t).x, mesh.VT(t).y });
 	}
 
-	for (int i = 0; i < hashmapFacesIndices.size(); i++) {
-		m_facesIndex.push_back(hashmapFacesIndices.find(i)->second);
+	for (int i = 0; i < faceIndexMap.size(); i++) {
+		m_facesIndex.push_back(faceIndexMap.find(i)->second);
 	}
 
+	// Clear mesh and maps
 	mesh.Clear();
-	hashmapVertexIndices.clear();
-	hashmapUniqueVertexIndices.clear();
-	hashmapFacesIndices.clear();
+	vertexIndexMap.clear();
+	uniqueVertexIndexMap.clear();
+	faceIndexMap.clear();
 }
