@@ -87,7 +87,6 @@ void Scene1::render()
 
 void inline Scene1::drawSkybox()
 {
-	//draw skybox
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glUseProgram(m_skyboxProgram.GetID());
 
@@ -190,17 +189,20 @@ void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) 
 };
 
 void Scene1::onRightButton(MouseInput mouse) {
+	//change position camera positon around scene origin
 	m_cam.m_angle.x += mouse.getDeltaX() / 400.0f;
 	m_cam.m_angle.y += mouse.getDeltaY() / 400.0f;
 };
 
 void Scene1::onLeftButton(MouseInput mouse)
 {
+	//change camera zoom to the scene origin
 	m_cam.updatePosition(mouse.getDeltaY() / 40.0f);
 };
 
 void Scene1::onLeftButton2(MouseInput mouse)
 {
+	//change light direction
 	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), mouse.getDeltaX() / 40.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), mouse.getDeltaY() / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 	

@@ -4,7 +4,18 @@
 class Plane : public Object3D
 {
 public:
+	/**
+	 * @brief Default constructor for the Plane class.
+	 *
+	 * This constructor generates the vertex, normal, texture coordinate, and face index buffers for the Plane object.
+	 */
 	Plane();
+
+	/**
+	 * @brief Destructor for the Plane class.
+	 *
+	 * This destructor calls the destructor of the base class Object3D to clean up any resources held by the Plane object.
+	 */
 	~Plane();
 
 	/**

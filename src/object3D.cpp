@@ -41,8 +41,8 @@ void Object3D::setTexture(unsigned texSizeWidth = 500, unsigned texSizeHeight = 
 	m_texWidth = texSizeWidth;
 	m_texHeight = texSizeHeight;
 
-	glGenTextures(1, &m_texID);
 	//texture
+	glGenTextures(1, &m_texID);
 	glBindTexture(GL_TEXTURE_2D, m_texID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texSizeWidth, texSizeHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_image.data());
 
@@ -97,10 +97,12 @@ void Object3D::setEbo(GLenum drawMode)
 
 void Object3D::loadFromFile(const char* filename) 
 {
+	//load
 	cy::TriMesh mesh;
 
 	mesh.LoadFromFileObj(filename);
 
+	//clear to ensure that won't have garbage into vbos and ebo
 	m_vertices.clear();
 	m_normals.clear();
 	m_texCoords.clear();

@@ -72,6 +72,7 @@ void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const ch
 
 	for (int i = 0; i < 6; i++) 
 	{
+		//start a thread for each cubemap image
 		threads.emplace_back([&, i] {
 			std::vector<unsigned char> localImage;
 			lodepng::State localState;
@@ -83,7 +84,7 @@ void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const ch
 			m_states[i] = localState;
 
 			localImage.clear();
-			});
+		});
 	}
 
 	//wait threads to load all images
@@ -96,6 +97,7 @@ void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const ch
 void Cubemap::loadImage(const char* imagePath, std::vector<unsigned char>& image, unsigned int& width, unsigned int& height, lodepng::State state)
 {
 	std::vector<unsigned char> png;
+	
 	unsigned error = lodepng::load_file(png, imagePath);
 	if (!error) error = lodepng::decode(image, width, height, state, png);
 	if (error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
