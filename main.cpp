@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #define GLEW_STATIC
+
 #include "ThirdParty/include/GL/glew.h"
 #include "ThirdParty/include/GL/freeglut.h"
 
@@ -46,14 +47,14 @@ int main(int argc, char** argv)
 
 	glutCreateWindow("OpenGL - The Reflective Teapot");
 
-	//setup callback functions
+	// Setup callback functions
 	glutKeyboardFunc(myKeyboard);
 	glutMouseFunc(myMouse);
 	glutSpecialFunc (specialFunc);
 	glutReshapeFunc(reshapeWindow);
 
 	GLenum res = glewInit();
-	//check if glew initializes
+	// Check if glew initializes
 	if (res != GLEW_OK)
 	{
 		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
@@ -62,7 +63,7 @@ int main(int argc, char** argv)
 
 	CY_GL_REGISTER_DEBUG_CALLBACK;
 
-	//setup scene
+	// Setup scene
 	scene1.setup(windowHeight, windowWidth);
 
 	glutDisplayFunc(myDisplay);
@@ -125,7 +126,7 @@ void onRightButton(int x, int y)
 // Callback function for special key input
 void specialFunc(int key, int x, int y) 
 {
-	if (key == GLUT_KEY_CTRL_L) { //if left control pressed
+	if (key == GLUT_KEY_CTRL_L) { // If left control pressed
 		mouse.update(x, y);
 		glutMotionFunc(onLeftButton2);
 	}

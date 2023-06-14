@@ -1,9 +1,11 @@
 #include "scene1.h"
 
 void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
+	// Store the window dimensions
 	m_windowWidth = windowWidth;
 	m_windowHeight = windowHeight;
 
+	// Load the image files to create the cubemap
 	m_cubemap.loadImageFilesCubeMap(
 		"cubemap/cubemap_posx.png",
 		"cubemap/cubemap_negx.png",
@@ -13,12 +15,15 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 		"cubemap/cubemap_negz.png"
 	);
 	
+	// Set camera position and MVP mat
 	m_cam.updatePosition();
 	m_cam.setMVP(windowWidth, windowHeight);
 
+	//Set objects
 	m_object3D.set("3DObjects/teapot.obj");
 	m_plane.set(m_windowWidth, m_windowHeight);
 	
+	// Compile and link the shaders for the object program
 	cy::GLSLShader vertexS;
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 
@@ -30,12 +35,15 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 	m_objectProgram.AttachShader(vertexS);
 	m_objectProgram.Link();
 	
+	// Set the texture of the 3D object with the window dimensions
 	m_object3D.setTexture(windowWidth, windowHeight);
 
 	m_cubemap.set();
 	
+	// Set the uniform variables for the object program
 	setUniformVariables(m_objectProgram.GetID(), windowHeight, windowWidth);
 
+	// Compile and link the shaders for the skybox program
 	vertexS.CompileFile("Shaders/vertexcube.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/fragmentcube.frag", GL_FRAGMENT_SHADER);
 
@@ -44,8 +52,10 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 	m_skyboxProgram.AttachShader(vertexS);
 	m_skyboxProgram.Link();
 
+	// Set the uniform variables for the skybox program
 	setUniformVariables(m_skyboxProgram.GetID(), windowHeight, windowWidth);
 
+	// Compile and link the shaders for the reflecting plane program
 	vertexS.CompileFile("Shaders/vertex.vert", GL_VERTEX_SHADER);
 	fragmentS.CompileFile("Shaders/reflecting_plane_surface.frag", GL_FRAGMENT_SHADER);
 
@@ -54,6 +64,7 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 	m_planeProgram.AttachShader(vertexS);
 	m_planeProgram.Link();
 
+	// Set the uniform variables for the reflecting plane program
 	setUniformVariables(m_planeProgram.GetID(), windowHeight, windowWidth);
 	
 };
@@ -61,6 +72,7 @@ void Scene1::setup(unsigned int windowWidth, unsigned int windowHeight) {
 void Scene1::update() 
 {
 	m_cam.update();
+
 	updateUniformVariables(m_objectProgram.GetID());
 	updateUniformVariables(m_skyboxProgram.GetID());
 	updateUniformVariables(m_planeProgram.GetID());
@@ -74,7 +86,7 @@ void Scene1::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
 	
-	//draw skybox before anything
+	// Draw skybox before anything
 	drawSkybox();
 	
 	glEnable(GL_DEPTH_TEST);
@@ -114,24 +126,24 @@ void inline Scene1::draw3dObj()
 
 void inline Scene1::drawPlane() 
 {
-	//bind framebuffer and setup frame
+	// Bind framebuffer and setup frame
 	glBindFramebuffer(GL_FRAMEBUFFER, m_plane.m_frameBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
 
-	//bind the texture to be rendered
+	// Bind the texture to be rendered
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_plane.m_renderedTexture);
 
 	bool cameraCanSeeObject = glm::dot(m_cam.m_position, glm::vec3(0, 1, 0)) > 0;
 
 	if (cameraCanSeeObject) {
-		//render the 3d object reflected on the plane
+		// Render the 3d object reflected on the plane
 		glUseProgram(m_objectProgram.GetID());
 		glBindVertexArray(m_object3D.m_vao);
 
-		//reflect camera view
+		// Reflect camera view
 		glm::mat4 view = glm::lookAt(
 			glm::reflect(m_cam.m_position, glm::vec3(0, 1, 0)),
 			glm::vec3(0.0f, 0.0f, 0.0f),
@@ -140,16 +152,16 @@ void inline Scene1::drawPlane()
 
 		glm::mat4 mvp = m_cam.m_projection * m_cam.m_model * view;
 
-		//send the reflected mvp to the shader
+		// Send the reflected mvp to the shader
 		GLint uniformLoc = glGetUniformLocation(m_objectProgram.GetID(), "mvp");
 		glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
-		//draw into texture the 3d object
+		// Draw into texture the 3d object
 		glDrawElements(GL_TRIANGLES, m_object3D.m_facesIndex.size(), GL_UNSIGNED_INT, 0);
 	}
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	//draw plane with the rendered texture
+	// Draw plane with the rendered texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glUseProgram(m_planeProgram.GetID());
@@ -166,19 +178,19 @@ void inline Scene1::drawPlane()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap.m_texCubeID);
 	glUniform1i(glGetUniformLocation(m_planeProgram.GetID(), "skybox"), 1);
 
-	//drawplane
+	// Drawplane
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) {
 
-	//when height is too small, reshape viewport to not show the skybox boundaries
+	// When height is too small, reshape viewport to not show the skybox boundaries
 	if ((float)windowHeight / (float)windowWidth < 0.3) {
 		reshapeWindow((float)windowHeight / 0.31, windowHeight);
 		return;
 	}
 
-	//makes sure that window won't crash if one of the window sides have size zero
+	// Makes sure that window won't crash if one of the window sides have size zero
 	if (windowHeight > 0 && windowWidth > 0) {
 		m_cam.setMVP(windowWidth, windowHeight);
 		m_windowWidth = windowWidth;
@@ -189,20 +201,20 @@ void Scene1::reshapeWindow(unsigned int windowWidth, unsigned int windowHeight) 
 };
 
 void Scene1::onRightButton(MouseInput mouse) {
-	//change position camera positon around scene origin
+	// Change position camera positon around scene origin
 	m_cam.m_angle.x += mouse.getDeltaX() / 400.0f;
 	m_cam.m_angle.y += mouse.getDeltaY() / 400.0f;
 };
 
 void Scene1::onLeftButton(MouseInput mouse)
 {
-	//change camera zoom to the scene origin
+	// Change camera zoom to the scene origin
 	m_cam.updatePosition(mouse.getDeltaY() / 40.0f);
 };
 
 void Scene1::onLeftButton2(MouseInput mouse)
 {
-	//change light direction
+	// Change light direction
 	glm::mat4 rotationMatrixX = glm::rotate(glm::mat4(1.0f), mouse.getDeltaX() / 40.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 rotationMatrixY = glm::rotate(glm::mat4(1.0f), mouse.getDeltaY() / 40.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 	

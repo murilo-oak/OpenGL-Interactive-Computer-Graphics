@@ -20,8 +20,8 @@ public:
 	GLuint m_vbo{};
 	GLuint m_texCubeID{};
 
-	float m_vertices[108] = {
-		// positions          
+	//Positions     
+	float m_vertices[108] = {     
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f,

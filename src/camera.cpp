@@ -19,10 +19,10 @@ void Camera::update()
 
 void Camera::updatePosition(float deltaRadius) 
 {
-	//the difference in y-coordinate in mouse position change de distance to the scene origin
+	// The difference in y-coordinate in mouse position change de distance to the scene origin
 	m_radius += deltaRadius;
 
-	//polar coordinates, new position around scene origin
+	// Polar coordinates, new position around scene origin
 	m_position = glm::vec3(
 		m_radius * sin(m_angle.y) * sin(m_angle.x),
 		m_radius * cos(m_angle.y),
@@ -32,16 +32,16 @@ void Camera::updatePosition(float deltaRadius)
 
 void Camera::setMVP(unsigned int windowHeight, unsigned int windowWidth) 
 {
-	//mat p
+	// Mat p
 	setProjectionMat(windowHeight, windowWidth);
 	
-	//mat v
+	// Mat v
 	setViewMat();
 	
-	//mat m
+	// Mat m
 	setModelMat();
 
-	//mat mvp 
+	// Mat mvp 
 	updateMVP();
 }
 
@@ -68,7 +68,7 @@ void Camera::updateMVP()
 {
 	m_mvp = m_projection * m_model * m_view;
 
-	//mat for other operations, such as caculating normals for the shaders
+	// Mat for other operations, such as caculating normals for the shaders
 	m_mv4 = m_model * m_view;
 	m_invMv4 = glm::inverse(m_mv4);
 	m_mv = glm::transpose(m_invMv4);

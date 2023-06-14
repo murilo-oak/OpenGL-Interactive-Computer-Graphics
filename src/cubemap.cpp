@@ -8,7 +8,7 @@ Cubemap::~Cubemap()
 	glDeleteTextures(1, &m_texCubeID);
 	glDeleteVertexArrays(1, &m_vao);
 
-	//delete all images
+	// Delete all images
 	for (auto& img : m_images) {
 		img.clear();
 	}
@@ -22,11 +22,11 @@ void Cubemap::set()
 
 void Cubemap::setBuffer() 
 {
-	//Cubemap
+	// Cubemap
 	glGenVertexArrays(1, &m_vao);
 	glBindVertexArray(m_vao);
 
-	//positions
+	// Positions
 	glCreateBuffers(1, &m_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 	glNamedBufferStorage(m_vbo, sizeof(m_vertices), m_vertices, 0);
@@ -46,7 +46,7 @@ void Cubemap::setTexture()
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_images[i].data());
 	}
 
-	//cube filter parameters
+	// Cube filter parameters
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -72,7 +72,7 @@ void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const ch
 
 	for (int i = 0; i < 6; i++) 
 	{
-		//start a thread for each cubemap image
+		// Start a thread for each cubemap image
 		threads.emplace_back([&, i] {
 			std::vector<unsigned char> localImage;
 			lodepng::State localState;
@@ -87,7 +87,7 @@ void Cubemap::loadImageFilesCubeMap(const char* posx, const char* negx, const ch
 		});
 	}
 
-	//wait threads to load all images
+	// Wait threads to load all images
 	for (auto& thread : threads) {
 		thread.join();
 	}

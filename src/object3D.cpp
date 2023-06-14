@@ -41,18 +41,18 @@ void Object3D::setTexture(unsigned texSizeWidth = 500, unsigned texSizeHeight = 
 	m_texWidth = texSizeWidth;
 	m_texHeight = texSizeHeight;
 
-	//texture
+	// Texture
 	glGenTextures(1, &m_texID);
 	glBindTexture(GL_TEXTURE_2D, m_texID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texSizeWidth, texSizeHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_image.data());
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	//filter
+	// Filter
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	//Tiling
+	// Tiling
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 }
 
@@ -97,12 +97,12 @@ void Object3D::setEbo(GLenum drawMode)
 
 void Object3D::loadFromFile(const char* filename) 
 {
-	//Load mesh
+	// Load mesh
 	cy::TriMesh mesh;
 
 	mesh.LoadFromFileObj(filename);
 
-	//Clear to ensure that won't have garbage into vbos and ebo
+	// Clear to ensure that won't have garbage into vbos and ebo
 	m_vertices.clear();
 	m_normals.clear();
 	m_texCoords.clear();

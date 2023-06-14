@@ -8,10 +8,10 @@
 class Camera
 {
 public:
-	//position coordinates (x,y,z)
+	//Position coordinates (x,y,z)
 	glm::vec3 m_position{};
 
-	//polar coordinates (angle1, angle2, r)
+	//Polar coordinates (angle1, angle2, r)
 	glm::vec2 m_angle{ 0.90f, 0.90f };
 	float m_radius = 3;
 	
