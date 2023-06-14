@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -24,22 +16,9 @@
     <ProjectGuid>{c0ac5c23-2825-4280-bbf0-967863b6a9dd}</ProjectGuid>
     <RootNamespace>Project1</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>Project2</ProjectName>
+    <ProjectName>OpenGL - Interactive Computer Graphics</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -58,12 +37,6 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -71,61 +44,38 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <PublicIncludeDirectories>$(SolutionDir)ThirdParty\Include\;$(IncludePath)</PublicIncludeDirectories>
+    <PublicModuleDirectories>$(SolutionDir)\ThirdParty\$(PlatformTarget)\lib\;$(LibraryPath)</PublicModuleDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <PublicModuleDirectories>$(SolutionDir)\ThirdParty\$(PlatformTarget)\lib\</PublicModuleDirectories>
+    <PublicIncludeDirectories>$(SolutionDir)ThirdParty\Include\</PublicIncludeDirectories>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\opengl\glew-2.1.0\include\GL;C:\opengl\freeglut-3.4.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\OpenGL-Interactive-Computer-Graphics\ThirdParty\include\GL;C:\Projects\OpenGL-Interactive-Computer-Graphics\ThirdParty\include;C:\opengl\glew-2.1.0\include\GL;C:\opengl\freeglut-3.4.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\opengl\glew-2.1.0\bin\Release\x64;C:\opengl\glew-2.1.0\lib\Release\x64;C:\opengl\freeglut-3.4.0\build\bin\Release;C:\opengl\freeglut-3.4.0\build\bin\Debug;C:\opengl\freeglut-3.4.0\build\lib\Release;C:\opengl\freeglut-3.4.0\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\ThirdParty\lib;$(SolutionDir)\ThirdParty\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)ThirdParty\bin\*.dll" "$(OutputPath)" /Y
+xcopy "$(SolutionDir)3DObjects\" "$(OutputPath)3DObjects\" /E /Y
+xcopy "$(SolutionDir)cubemap\" "$(OutputPath)cubemap\" /E /Y
+xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -142,26 +92,56 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\opengl\glew-2.1.0\bin\Release\x64;C:\opengl\glew-2.1.0\lib\Release\x64;C:\opengl\freeglut-3.4.0\build\bin\Release;C:\opengl\freeglut-3.4.0\build\bin\Debug;C:\opengl\freeglut-3.4.0\build\lib\Release;C:\opengl\freeglut-3.4.0\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\ThirdParty\lib;$(SolutionDir)\ThirdParty\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)ThirdParty\bin\*.dll" "$(OutputPath)" /Y
+xcopy "$(SolutionDir)3DObjects\" "$(OutputPath)3DObjects\" /E /Y
+xcopy "$(SolutionDir)cubemap\" "$(OutputPath)cubemap\" /E /Y
+xcopy "$(SolutionDir)Shaders\" "$(OutputPath)Shaders\" /E /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="lodepng\lodepng.cpp" />
+    <ClCompile Include="src\mouseinput.cpp" />
+    <ClCompile Include="Scenes\scene1.cpp" />
+    <ClCompile Include="src\scene.cpp" />
+    <ClCompile Include="src\plane.cpp" />
+    <ClCompile Include="src\object3D.cpp" />
+    <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\cubemap.cpp" />
+    <ClCompile Include="ThirdParty\include\lodepng\lodepng.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cyCodeBase\cyCore.h" />
-    <ClInclude Include="cyCodeBase\cyGL.h" />
-    <ClInclude Include="cyCodeBase\cyIVector.h" />
-    <ClInclude Include="cyCodeBase\cyTriMesh.h" />
-    <ClInclude Include="lodepng\lodepng.h" />
+    <ClInclude Include="src\mouseinput.h" />
+    <ClInclude Include="Scenes\scene1.h" />
+    <ClInclude Include="src\scene.h" />
+    <ClInclude Include="src\plane.h" />
+    <ClInclude Include="src\object3D.h" />
+    <ClInclude Include="src\camera.h" />
+    <ClInclude Include="src\cubemap.h" />
+    <ClInclude Include="ThirdParty\include\lodepng\lodepng.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Blinn_shading.frag" />
+    <None Include="Shaders\reflecting_object_surface.frag" />
+    <None Include="Shaders\reflecting_plane_surface.frag" />
     <None Include="Shaders\fragment.frag" />
+    <None Include="Shaders\fragmentcube.frag" />
     <None Include="Shaders\vertex.vert" />
+    <None Include="Shaders\vertexcube.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cubemap\cubemap_negx.png" />
+    <Image Include="cubemap\cubemap_negy.png" />
+    <Image Include="cubemap\cubemap_negz.png" />
+    <Image Include="cubemap\cubemap_posx.png" />
+    <Image Include="cubemap\cubemap_posy.png" />
+    <Image Include="cubemap\cubemap_posz.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="cubemap\cubemap_readme.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -18,30 +18,86 @@
     <ClCompile Include="main.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="lodepng\lodepng.cpp">
+    <ClCompile Include="ThirdParty\include\lodepng\lodepng.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cubemap.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\camera.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\object3D.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plane.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\scene1.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mouseinput.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cyCodeBase\cyIVector.h">
+    <ClInclude Include="ThirdParty\include\lodepng\lodepng.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cyCodeBase\cyTriMesh.h">
+    <ClInclude Include="src\cubemap.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cyCodeBase\cyCore.h">
+    <ClInclude Include="src\camera.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="cyCodeBase\cyGL.h">
+    <ClInclude Include="src\object3D.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="lodepng\lodepng.h">
+    <ClInclude Include="src\plane.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\scene1.h">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mouseinput.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\fragment.frag" />
     <None Include="Shaders\vertex.vert" />
-    <None Include="Shaders\Blinn_shading.frag" />
+    <None Include="Shaders\reflecting_plane_surface.frag" />
+    <None Include="Shaders\vertexcube.vert" />
+    <None Include="Shaders\fragmentcube.frag" />
+    <None Include="Shaders\reflecting_object_surface.frag" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cubemap\cubemap_negx.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_negy.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_negz.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_posx.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_posy.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+    <Image Include="cubemap\cubemap_posz.png">
+      <Filter>Arquivos de Recurso</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="cubemap\cubemap_readme.txt" />
   </ItemGroup>
 </Project>
