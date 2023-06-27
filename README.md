@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue.svg)
 
-This repository contains an OpenGL application that showcases various techniques and concepts in computer graphics. The project implemented here is called "Environment Mapping," which focuses on creating surfaces with high reflectivity using frame buffers and render-to-texture techniques. The project features a reflective teapot and a plane underneath that reflects the teapot's appearance.
+This repository contains an OpenGL application that showcases various techniques and concepts in computer graphics. The project implemented here is called "Environment Mapping", which focuses on creating surfaces with high reflectivity using frame buffers and render-to-texture techniques. The project features a reflective teapot and a plane underneath that reflects the teapot's appearance.
 
 ![](docs/screenshot.png)
 ## Course - Interactive Computer Graphics 🧠
