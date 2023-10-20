@@ -20,7 +20,9 @@ uniform vec3 lightDir;
 
 
 void main() {
+	//pass values to the fragment shader
 	lightD = mv3 * lightDir;
+
 	color = vec4(icolor,1);
 	pos = vec4(iposition, 1);
 	
